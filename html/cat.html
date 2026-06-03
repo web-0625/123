@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>小猫盯鱼 · 灵动之眼</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* 避免拖动时干扰 */
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            background: #d9e6c3;
+            min-height: 100vh;
+            overflow: hidden;
+            cursor: none; /* 隐藏默认光标，使用自定义小鱼图片 */
+            position: relative;
+        }
+
+        /* 渐变地面背景 —— 草地渐变，简约生动 */
+        .ground-bg {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 35%;
+            background: linear-gradient(145deg, #7dab6f, #4a7c3b, #2b5e1e);
+            z-index: 0;
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.1);
+            border-top: 2px solid #e9f5cf;
+        }
+        
+        /* 装饰光晕 */
+        .ground-bg::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: radial-gradient(ellipse at center, rgba(255,240,180,0.5) 0%, rgba(100,140,60,0) 80%);
+        }
+
+        /* 主舞台 */
+        .stage {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            z-index: 2;
+            pointer-events: auto;
+        }
+
+        /* 顶部工具栏 (半透玻璃风格) */
+        .toolbar {
+            background: rgba(255, 248, 225, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 12px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+            border-bottom: 2px solid #e4cf9e;
+            z-index: 20;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .select-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #fef7e8;
+            padding: 6px 20px;
+            border-radius: 60px;
+            box-shadow: inset 0 1px 2px #fff8, 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .select-group label {
+            font-weight: 600;
+            color: #5a3e2b;
+            letter-spacing: 0.5px;
+        }
+        select {
+            background: #fff2e2;
+            border: 1px solid #ddcca8;
+            padding: 6px 12px;
+            border-radius: 32px;
+            font-weight: 500;
+            color: #3b2a1e;
+            cursor: pointer;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+        }
+        select:hover {
+            background: #fff0dd;
+        }
+        button {
+            background: #fff0df;
+            border: 1px solid #dbbc8c;
+            padding: 6px 20px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.2s;
+            color: #5a3e28;
+        }
+        button:hover {
+            background: #ffefd4;
+            transform: scale(0.96);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        /* 猫咪中心区域 */
+        .cat-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            cursor: pointer; /* 小猫区域可以点击发声 */
+            z-index: 10;
+        }
+        .cat-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            transition: filter 0.2s;
+        }
+        #catImage {
+            max-height: 55vh;
+            max-width: 70vw;
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 12px 18px rgba(0,0,0,0.2));
+            transition: transform 0.1s ease;
+            pointer-events: auto;
+        }
+        /* 眼球画布层（覆盖在小猫图片上面，绝对定位） */
+        .eyes-canvas-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;  /* 让鼠标事件穿透给图片 */
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* 小鱼光标 */
+        .custom-cursor {
+            position: fixed;
+            width: 42px;
+            height: 42px;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.05s linear;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+            transform: translate(-10%, -10%);
+        }
+        .custom-cursor img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* 可移动设置窗口 */
+        .settings-dialog {
+            position: fixed;
+            top: 25%;
+            left: 30%;
+            width: 380px;
+            background: #fffef7;
+            border-radius: 32px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(200, 170, 120, 0.3);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            cursor: default;
+            font-family: monospace;
+            border: 1px solid #ecd9b4;
+        }
+        .dialog-header {
+            background: #f9efdf;
+            padding: 14px 18px;
+            border-radius: 32px 32px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            font-weight: 600;
+            color: #7a5a3a;
+            border-bottom: 1px solid #e9d7bc;
+        }
+        .dialog-header span {
+            cursor: grab;
+        }
+        .dialog-header button {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 0 8px;
+            color: #ad8b62;
+        }
+        .dialog-body {
+            padding: 20px 22px;
+            max-height: 460px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .control-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .control-row label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #6f4f2c;
+        }
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            background: #f2e3cf;
+            height: 4px;
+            border-radius: 4px;
+        }
+        .row-double {
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+        }
+        .row-double > div {
+            flex: 1;
+        }
+        .value-display {
+            font-size: 0.7rem;
+            color: #b88246;
+            text-align: right;
+        }
+        .save-btn {
+            background: #dabb96;
+            color: white;
+            margin-top: 12px;
+            border: none;
+            padding: 8px;
+            font-weight: bold;
+        }
+        .reset-btn {
+            background: #eedbc2;
+            color: #775e3e;
+        }
+
+        @media (max-width: 560px) {
+            .settings-dialog { width: 90%; left: 5%; top: 15%; }
+            .toolbar { gap: 12px; padding: 10px; }
+            .select-group { padding: 4px 12px; }
+        }
+    </style>
+</head>
+<body>
+<div class="ground-bg"></div>
+<div class="stage">
+    <div class="toolbar">
+        <div class="select-group">
+            <label>🐟 小鱼光标:</label>
+            <select id="fishSelect">
+                <option value="fish1.png">🐟 小红鱼</option>
+                <option value="fish2.png">🐠 小丑鱼</option>
+                <option value="fish3.png">🐡 河豚鱼</option>
+            </select>
+        </div>
+        <div class="select-group">
+            <label>🐱 小猫形象:</label>
+            <select id="catSelect">
+                <option value="cat1.png">😺 橘猫</option>
+                <option value="cat2.png">😻 黑白猫</option>
+                <option value="cat3.png">😽 虎斑猫</option>
+            </select>
+        </div>
+        <button id="eyeSettingsBtn">👁️ 眼睛调节</button>
+    </div>
+
+    <div class="cat-container">
+        <div class="cat-wrapper" id="catWrapper">
+            <img id="catImage" src="../images/cat1.png" alt="小猫" draggable="false">
+            <div class="eyes-canvas-layer" id="eyesLayer">
+                <canvas id="eyeCanvas" width="800" height="600" style="width:100%; height:100%;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 自定义小鱼光标元素 -->
+<div class="custom-cursor" id="customCursor">
+    <img id="cursorFishImg" src="../images/fish1.png" alt="小鱼">
+</div>
+
+<!-- 可移动设置窗口 -->
+<div id="settingsModal" class="settings-dialog">
+    <div class="dialog-header" id="dialogHeader">
+        <span>🐾 灵动之眼 · 设置面板</span>
+        <button id="closeDialogBtn">✕</button>
+    </div>
+    <div class="dialog-body">
+        <div class="control-row">
+            <label>👀 眼睛垂直位置 (Y偏移) <span id="eyeYVal">0</span> px</label>
+            <input type="range" id="eyeVertical" min="-150" max="150" value="0" step="2">
+        </div>
+        <div class="control-row">
+            <label>🔘 眼睛大小 <span id="eyeSizeVal">30</span> px</label>
+            <input type="range" id="eyeSize" min="5" max="100" value="30" step="1">
+        </div>
+        <div class="control-row">
+            <label>📐 双眼整体水平位置 <span id="globalXVal">0</span> px</label>
+            <input type="range" id="globalHoriz" min="-400" max="400" value="0" step="5">
+        </div>
+        <div class="row-double">
+            <div>
+                <label>👈 左眼独立水平 <span id="leftOffVal">0</span></label>
+                <input type="range" id="leftOffset" min="-400" max="400" value="0" step="5">
+            </div>
+            <div>
+                <label>👉 右眼独立水平 <span id="rightOffVal">0</span></label>
+                <input type="range" id="rightOffset" min="-400" max="400" value="0" step="5">
+            </div>
+        </div>
+        <div class="control-row">
+            <button id="saveEyeSettings" class="save-btn">💾 保存设置 (持久化)</button>
+            <button id="resetSettings" class="reset-btn" style="margin-top: 8px;">⟳ 重置默认</button>
+        </div>
+        <div style="font-size:11px; color:#b4936b; text-align:center;">✨ 拖动窗口可移动 | 设置即时生效</div>
+    </div>
+</div>
+
+<audio id="meowAudio" src="../audios/cat.mp3" preload="auto"></audio>
+
+<script>
+    (function() {
+        // ------------------- DOM 元素 -------------------
+        const catImg = document.getElementById('catImage');
+        const catSelect = document.getElementById('catSelect');
+        const fishSelect = document.getElementById('fishSelect');
+        const cursorFishImg = document.getElementById('cursorFishImg');
+        const customCursorDiv = document.getElementById('customCursor');
+        const eyeCanvas = document.getElementById('eyeCanvas');
+        const ctx = eyeCanvas.getContext('2d');
+        const catWrapper = document.getElementById('catWrapper');
+        const meowSound = document.getElementById('meowAudio');
+        
+        // 设置窗口相关
+        const modal = document.getElementById('settingsModal');
+        const eyeSettingsBtn = document.getElementById('eyeSettingsBtn');
+        const closeDialogBtn = document.getElementById('closeDialogBtn');
+        const saveEyeSettingsBtn = document.getElementById('saveEyeSettings');
+        const resetSettingsBtn = document.getElementById('resetSettings');
+        
+        // 滑动控件
+        const eyeVerticalSlider = document.getElementById('eyeVertical');
+        const eyeSizeSlider = document.getElementById('eyeSize');
+        const globalHorizSlider = document.getElementById('globalHoriz');
+        const leftOffsetSlider = document.getElementById('leftOffset');
+        const rightOffsetSlider = document.getElementById('rightOffset');
+        
+        // 数值显示span
+        const eyeYVal = document.getElementById('eyeYVal');
+        const eyeSizeVal = document.getElementById('eyeSizeVal');
+        const globalXVal = document.getElementById('globalXVal');
+        const leftOffVal = document.getElementById('leftOffVal');
+        const rightOffVal = document.getElementById('rightOffVal');
+        
+        // ---------- 小猫图片实际加载完成时, 动态更新canvas尺寸与眼睛绘制 ----------
+        let catRect = { width: 0, height: 0, left: 0, top: 0 };
+        let eyeParams = {
+            verticalOffset: 0,    // Y偏移
+            eyeRadius: 30,        // 眼睛大小半径(px)
+            globalXShift: 0,      // 整体水平偏移
+            leftShift: 0,         // 左眼单独偏移
+            rightShift: 0         // 右眼单独偏移
+        };
+        
+        // 预设基础眼睛相对位置（相对猫咪图片宽高的比例基准，猫的脸部大致区域）
+        // 左眼基准 (相对图片宽度比例X，相对高度比例Y)
+        let baseLeftEye = { xRatio: 0.35, yRatio: 0.42 };
+        let baseRightEye = { xRatio: 0.65, yRatio: 0.42 };
+        
+        // 当前鼠标位置（用于眼球跟随）
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        
+        // 自定义光标位置实时更新
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            if (customCursorDiv) {
+                customCursorDiv.style.left = (e.clientX - 18) + 'px';
+                customCursorDiv.style.top = (e.clientY - 18) + 'px';
+            }
+            // 实时重绘眼睛（跟随）
+            drawEyesWithFollow();
+        });
+        
+        // 小猫点击发声
+        catWrapper.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (meowSound) {
+                meowSound.currentTime = 0;
+                meowSound.play().catch(err => console.log("音频播放失败:", err));
+            }
+        });
+        
+        // 获取小猫图片实际显示区域（相对于canvas层）
+        function updateCatRect() {
+            const rect = catImg.getBoundingClientRect();
+            const canvasLayer = document.getElementById('eyesLayer');
+            const layerRect = canvasLayer.getBoundingClientRect();
+            // 获取canvas相对于父层偏移，但画布覆盖完全相同区域，我们绘制时需要基于 canvas 内部坐标
+            // canvas 实际像素尺寸应与显示的client尺寸匹配（通过css拉伸导致模糊问题？我们动态调整canvas宽高比）
+            if (rect.width > 0 && rect.height > 0) {
+                catRect.width = rect.width;
+                catRect.height = rect.height;
+                catRect.left = rect.left;
+                catRect.top = rect.top;
+                // 同步canvas分辨率 避免模糊
+                eyeCanvas.width = rect.width;
+                eyeCanvas.height = rect.height;
+                eyeCanvas.style.width = `${rect.width}px`;
+                eyeCanvas.style.height = `${rect.height}px`;
+                drawEyesWithFollow();
+            }
+        }
+        
+        // 窗口resize时重新计算
+        window.addEventListener('resize', () => {
+            updateCatRect();
+        });
+        
+        // 观察图片变化（src变化时，等待图片加载完成）
+        function onCatImageLoad() {
+            updateCatRect();
+        }
+        catImg.addEventListener('load', onCatImageLoad);
+        
+        // 小猫图片切换
+        catSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            catImg.src = `../images/${val}`;
+        });
+        
+        // 小鱼光标切换
+        fishSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            cursorFishImg.src = `../images/${val}`;
+        });
+        
+        // ---------- 眼睛绘制 + 跟随鼠标逻辑 ----------
+        // 计算眼球偏移（限制在瞳孔最大移动半径内）
+        function getPupilOffset(cx, cy, eyeRadius, mouseXGlobal, mouseYGlobal, catRectBounds) {
+            // 获取眼睛中心点的画布绝对坐标 (相对于canvas左上角)
+            const canvasRect = eyeCanvas.getBoundingClientRect();
+            const eyeCenterAbsX = canvasRect.left + cx;
+            const eyeCenterAbsY = canvasRect.top + cy;
+            let dx = mouseXGlobal - eyeCenterAbsX;
+            let dy = mouseYGlobal - eyeCenterAbsY;
+            const maxOffset = eyeRadius * 0.65; // 瞳孔移动范围
+            const distance = Math.hypot(dx, dy);
+            if (distance < 0.1) return { offsetX: 0, offsetY: 0 };
+            const ratio = Math.min(1, maxOffset / distance);
+            return { offsetX: dx * ratio, offsetY: dy * ratio };
+        }
+        
+        function drawEyesWithFollow() {
+            if (!ctx || catRect.width === 0) return;
+            ctx.clearRect(0, 0, eyeCanvas.width, eyeCanvas.height);
+            const w = eyeCanvas.width;
+            const h = eyeCanvas.height;
+            if (w === 0) return;
+            
+            // 根据存储的参数 计算两只眼睛中心的画布坐标
+            const eyeRadius = Math.max(5, eyeParams.eyeRadius);
+            // 垂直偏移(整体)
+            const vertOffset = eyeParams.verticalOffset;
+            // 整体水平偏移基准
+            const globalShift = eyeParams.globalXShift;
+            const leftIndShift = eyeParams.leftShift;
+            const rightIndShift = eyeParams.rightShift;
+            
+            let leftCenterX = w * baseLeftEye.xRatio + globalShift + leftIndShift;
+            let leftCenterY = h * baseLeftEye.yRatio + vertOffset;
+            let rightCenterX = w * baseRightEye.xRatio + globalShift + rightIndShift;
+            let rightCenterY = h * baseRightEye.yRatio + vertOffset;
+            
+            // 限制眼球范围不要飞出画面太多
+            leftCenterX = Math.min(Math.max(leftCenterX, eyeRadius+2), w - eyeRadius-2);
+            leftCenterY = Math.min(Math.max(leftCenterY, eyeRadius+2), h - eyeRadius-2);
+            rightCenterX = Math.min(Math.max(rightCenterX, eyeRadius+2), w - eyeRadius-2);
+            rightCenterY = Math.min(Math.max(rightCenterY, eyeRadius+2), h - eyeRadius-2);
+            
+            // 获取canvas 在视口中的位置，用于跟随鼠标
+            const rectCanvas = eyeCanvas.getBoundingClientRect();
+            // 眼球跟随
+            const leftPupil = getPupilOffset(leftCenterX, leftCenterY, eyeRadius, mouseX, mouseY, rectCanvas);
+            const rightPupil = getPupilOffset(rightCenterX, rightCenterY, eyeRadius, mouseX, mouseY, rectCanvas);
+            
+            // 绘制左眼白 (带高光)
+            ctx.save();
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.arc(leftCenterX, leftCenterY, eyeRadius, 0, Math.PI*2);
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fill();
+            ctx.strokeStyle = "#7f6148";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            // 瞳孔
+            ctx.beginPath();
+            ctx.arc(leftCenterX + leftPupil.offsetX, leftCenterY + leftPupil.offsetY, eyeRadius * 0.5, 0, Math.PI*2);
+            ctx.fillStyle = "#2F2E2E";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(leftCenterX + leftPupil.offsetX - 2, leftCenterY + leftPupil.offsetY - 2, eyeRadius * 0.15, 0, Math.PI*2);
+            ctx.fillStyle = "white";
+            ctx.fill();
+            
+            // 右眼
+            ctx.beginPath();
+            ctx.arc(rightCenterX, rightCenterY, eyeRadius, 0, Math.PI*2);
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(rightCenterX + rightPupil.offsetX, rightCenterY + rightPupil.offsetY, eyeRadius * 0.5, 0, Math.PI*2);
+            ctx.fillStyle = "#2F2E2E";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(rightCenterX + rightPupil.offsetX - 2, rightCenterY + rightPupil.offsetY - 2, eyeRadius * 0.15, 0, Math.PI*2);
+            ctx.fillStyle = "white";
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        // 刷新眼睛参数并重绘
+        function updateEyeParamsAndRedraw() {
+            drawEyesWithFollow();
+        }
+        
+        // 保存设置到 localStorage
+        function saveSettingsToLocal() {
+            const settings = {
+                verticalOffset: eyeParams.verticalOffset,
+                eyeRadius: eyeParams.eyeRadius,
+                globalXShift: eyeParams.globalXShift,
+                leftShift: eyeParams.leftShift,
+                rightShift: eyeParams.rightShift
+            };
+            localStorage.setItem('catEyeSettings', JSON.stringify(settings));
+            alert('✨ 眼睛设置已保存，下次刷新自动加载');
+        }
+        
+        function loadSettingsFromLocal() {
+            const saved = localStorage.getItem('catEyeSettings');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    eyeParams.verticalOffset = data.verticalOffset ?? 0;
+                    eyeParams.eyeRadius = data.eyeRadius ?? 30;
+                    eyeParams.globalXShift = data.globalXShift ?? 0;
+                    eyeParams.leftShift = data.leftShift ?? 0;
+                    eyeParams.rightShift = data.rightShift ?? 0;
+                    // 同步slider
+                    eyeVerticalSlider.value = eyeParams.verticalOffset;
+                    eyeSizeSlider.value = eyeParams.eyeRadius;
+                    globalHorizSlider.value = eyeParams.globalXShift;
+                    leftOffsetSlider.value = eyeParams.leftShift;
+                    rightOffsetSlider.value = eyeParams.rightShift;
+                    updateSliderDisplays();
+                    updateEyeParamsAndRedraw();
+                } catch(e) {}
+            } else {
+                resetToDefault();
+            }
+        }
+        
+        function updateSliderDisplays() {
+            eyeYVal.innerText = eyeParams.verticalOffset;
+            eyeSizeVal.innerText = eyeParams.eyeRadius;
+            globalXVal.innerText = eyeParams.globalXShift;
+            leftOffVal.innerText = eyeParams.leftShift;
+            rightOffVal.innerText = eyeParams.rightShift;
+        }
+        
+        function resetToDefault() {
+            eyeParams.verticalOffset = 0;
+            eyeParams.eyeRadius = 30;
+            eyeParams.globalXShift = 0;
+            eyeParams.leftShift = 0;
+            eyeParams.rightShift = 0;
+            eyeVerticalSlider.value = 0;
+            eyeSizeSlider.value = 30;
+            globalHorizSlider.value = 0;
+            leftOffsetSlider.value = 0;
+            rightOffsetSlider.value = 0;
+            updateSliderDisplays();
+            updateEyeParamsAndRedraw();
+        }
+        
+        // 监听slider事件
+        function bindSliders() {
+            eyeVerticalSlider.addEventListener('input', (e) => {
+                eyeParams.verticalOffset = parseInt(e.target.value);
+                eyeYVal.innerText = eyeParams.verticalOffset;
+                updateEyeParamsAndRedraw();
+            });
+            eyeSizeSlider.addEventListener('input', (e) => {
+                eyeParams.eyeRadius = parseInt(e.target.value);
+                eyeSizeVal.innerText = eyeParams.eyeRadius;
+                updateEyeParamsAndRedraw();
+            });
+            globalHorizSlider.addEventListener('input', (e) => {
+                eyeParams.globalXShift = parseInt(e.target.value);
+                globalXVal.innerText = eyeParams.globalXShift;
+                updateEyeParamsAndRedraw();
+            });
+            leftOffsetSlider.addEventListener('input', (e) => {
+                eyeParams.leftShift = parseInt(e.target.value);
+                leftOffVal.innerText = eyeParams.leftShift;
+                updateEyeParamsAndRedraw();
+            });
+            rightOffsetSlider.addEventListener('input', (e) => {
+                eyeParams.rightShift = parseInt(e.target.value);
+                rightOffVal.innerText = eyeParams.rightShift;
+                updateEyeParamsAndRedraw();
+            });
+        }
+        
+        // ---------- 可移动窗口逻辑 ----------
+        let isDragging = false;
+        let dragOffsetX = 0, dragOffsetY = 0;
+        const dialogHeader = document.getElementById('dialogHeader');
+        function makeDraggable() {
+            dialogHeader.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button')) return;
+                isDragging = true;
+                dragOffsetX = e.clientX - modal.offsetLeft;
+                dragOffsetY = e.clientY - modal.offsetTop;
+                modal.style.cursor = 'grabbing';
+                e.preventDefault();
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                let left = e.clientX - dragOffsetX;
+                let top = e.clientY - dragOffsetY;
+                left = Math.min(Math.max(left, 10), window.innerWidth - modal.offsetWidth - 10);
+                top = Math.min(Math.max(top, 20), window.innerHeight - modal.offsetHeight - 30);
+                modal.style.left = left + 'px';
+                modal.style.top = top + 'px';
+                modal.style.position = 'fixed';
+            });
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+                modal.style.cursor = '';
+            });
+        }
+        
+        // 窗口UI事件
+        eyeSettingsBtn.addEventListener('click', () => {
+            modal.style.display = 'block';
+        });
+        closeDialogBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        saveEyeSettingsBtn.addEventListener('click', saveSettingsToLocal);
+        resetSettingsBtn.addEventListener('click', () => {
+            resetToDefault();
+            saveSettingsToLocal(); // 重置后保存覆盖默认
+        });
+        
+        // 初始化
+        function init() {
+            bindSliders();
+            loadSettingsFromLocal();
+            makeDraggable();
+            // 设定初始图片
+            catImg.src = "../images/cat1.png";
+            cursorFishImg.src = "../images/fish1.png";
+            // 定时检测大小变化
+            const resizeObserver = new ResizeObserver(() => updateCatRect());
+            resizeObserver.observe(catImg);
+            updateCatRect();
+            setInterval(() => {
+                if (catRect.width) drawEyesWithFollow();
+            }, 50);
+        }
+        
+        init();
+    })();
+</script>
+</body>
+</html>

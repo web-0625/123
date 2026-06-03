@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>医学科普画廊 | 人体医学影像</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f1f5f9;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 简约主容器 */
+        .gallery-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            background: #f8fafc;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.02);
+        }
+
+        /* 左侧图片区域 (玻璃质感) */
+        .image-panel {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #fefefe 0%, #f5f9ff 100%);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-frame {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 28px;
+            padding: 12px;
+            backdrop-filter: blur(2px);
+            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.1);
+            max-width: 90%;
+            max-height: 75%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #mainImage {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 20px;
+            transition: transform 0.2s ease, opacity 0.25s ease;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .caption-area {
+            margin-top: 28px;
+            max-width: 80%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            padding: 14px 24px;
+            border-radius: 48px;
+            text-align: center;
+            font-size: 0.95rem;
+            color: #1e3a5f;
+            line-height: 1.5;
+            border: 1px solid rgba(70, 130, 200, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            font-weight: 480;
+        }
+
+        /* 右侧侧边栏: 简约白 */
+        .sidebar-panel {
+            flex: 1;
+            min-width: 260px;
+            background: #ffffff;
+            border-left: 1px solid #e9edf2;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.2rem 1.8rem 1.2rem;
+            backdrop-filter: blur(0);
+            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.02);
+            overflow-y: auto;
+        }
+
+        .sidebar-panel h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #0f2b3f;
+            margin-bottom: 1.8rem;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-left: 4px solid #2c7cb6;
+            padding-left: 14px;
+        }
+
+        /* 标题列表简约样式 */
+        .title-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            margin-bottom: 28px;
+        }
+
+        .title-list li {
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #2c4c6e;
+            background: #f9fbfe;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #eef2f7;
+            letter-spacing: 0.2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title-list li:hover {
+            background: #eef4fc;
+            border-color: #cbdde9;
+            transform: translateX(3px);
+            color: #1a5f8c;
+        }
+
+        .title-list li.active {
+            background: linear-gradient(95deg, #e9f2fa, #ffffff);
+            border-left: 4px solid #2c7cb6;
+            border-radius: 16px 12px 12px 16px;
+            font-weight: 600;
+            color: #0f5582;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        /* 控制按钮区 */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .controls button {
+            flex: 1;
+            background: #f1f5f9;
+            border: 1px solid #dce3eb;
+            padding: 10px 0;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #2c5a7a;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .controls button:hover {
+            background: #e2eaf2;
+            border-color: #bdd3e8;
+            color: #1e6a9f;
+        }
+
+        .controls button:active {
+            transform: scale(0.97);
+        }
+
+        /* 音乐控制简约样式 */
+        .music-control {
+            margin-top: 8px;
+            padding-top: 12px;
+            border-top: 1px solid #ecf1f6;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+            color: #4f6b85;
+        }
+
+        .music-control input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #2c7cb6;
+        }
+
+        /* 自定义滚动条 */
+        .sidebar-panel::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar-panel::-webkit-scrollbar-track {
+            background: #f0f2f5;
+            border-radius: 10px;
+        }
+
+        .sidebar-panel::-webkit-scrollbar-thumb {
+            background: #b9cfE5;
+            border-radius: 10px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 720px) {
+            .gallery-container {
+                flex-direction: column;
+            }
+            .image-panel {
+                flex: 2;
+                padding: 1rem;
+            }
+            .sidebar-panel {
+                flex: 1;
+                border-left: none;
+                border-top: 1px solid #e2e8f0;
+            }
+            .caption-area {
+                max-width: 95%;
+                font-size: 0.8rem;
+                padding: 10px 18px;
+            }
+        }
+
+        /* 图片淡入动画 */
+        .fade-img {
+            transition: opacity 0.2s;
+        }
+    </style>
+</head>
+<body>
+<div class="gallery-container">
+    <!-- 左侧图片区 -->
+    <div class="image-panel">
+        <div class="image-frame">
+            <img id="mainImage" src="../images/m01.jpg" alt="医学影像科普" />
+        </div>
+        <div class="caption-area" id="imageCaption">
+            点击右侧标题查看详细的医学知识说明
+        </div>
+    </div>
+
+    <!-- 右侧控制侧边栏 -->
+    <div class="sidebar-panel">
+        <h2>📖 医学科普目录</h2>
+        <ul class="title-list" id="titleList">
+            <!-- 动态js渲染但保留硬编码便于维护 使用js动态生成确保索引准确 -->
+        </ul>
+        <div class="controls">
+            <button id="prevBtn" aria-label="上一张">◀ 上一张</button>
+            <button id="nextBtn" aria-label="下一张">下一张 ▶</button>
+            <button id="toggleAutoBtn" aria-label="自动轮播">⏸ 暂停轮播</button>
+        </div>
+        <div class="music-control">
+            <input type="checkbox" id="musicToggle" checked> 
+            <label for="musicToggle">🎵 背景音乐 (bg03.mp3)</label>
+        </div>
+        <div style="font-size: 0.7rem; color: #9aaebf; margin-top: 12px; text-align: center;">
+            医学影像 • 智慧科普
+        </div>
+    </div>
+</div>
+
+<!-- 背景音乐元素 -->
+<audio id="bgMusic" src="../audios/bg03.mp3" autoplay loop preload="auto"></audio>
+
+<script>
+    (function() {
+        // ---------- 医学科普数据 ----------
+        // 图片路径基于 ../images/ , 文件 m01.jpg ~ m10.jpg
+        const itemsData = [
+            {
+                img: "m01.jpg",
+                caption: "🏥 医学影像设备 (CT/MRI): 利用磁场与无线电波对人体进行无创断层扫描，清晰呈现脑部、内脏及骨骼结构，为临床诊断提供精确依据。"
+            },
+            {
+                img: "m02.jpg",
+                caption: "❤️ 人体内脏系统: 心脏、肺、肝、胃、肠等器官精密协作，维持新陈代谢、循环与消化，是生命活动的核心引擎。"
+            },
+            {
+                img: "m03.jpg",
+                caption: "🌬️ 肺部结构影像: 呼吸系统的中枢，通过气管、支气管树及肺泡完成氧气与二氧化碳交换，保障血氧平衡。"
+            },
+            {
+                img: "m04.jpg",
+                caption: "🧠 大脑活动区域: 分为额叶、顶叶、颞叶、枕叶等，控制思维、记忆、运动与感官，神经元放电呈现活跃图谱。"
+            },
+            {
+                img: "m05.jpg",
+                caption: "🧬 DNA分子结构: 双螺旋遗传密码，由四种碱基对构成，记录生命蓝图，决定蛋白质合成与遗传特征。"
+            },
+            {
+                img: "m06.jpg",
+                caption: "🦴 人体骨骼系统: 206块骨头支撑躯体、保护脏器，并与肌肉协同完成运动功能，同时参与造血与钙磷代谢。"
+            },
+            {
+                img: "m07.jpg",
+                caption: "💊 临床常用药物: 胶囊、片剂、注射剂等多样化剂型，针对不同疾病发挥药理作用，是治疗与预防的关键武器。"
+            },
+            {
+                img: "m08.jpg",
+                caption: "⚡ 神经元网络: 神经系统的基本单元，通过树突、轴突和突触传递电化学信号，构建复杂信息处理网络。"
+            },
+            {
+                img: "m09.jpg",
+                caption: "🩸 血管与血液循环: 动脉、静脉与毛细血管构成封闭管道系统，输送氧气、营养并带走代谢废物，维持内环境稳定。"
+            },
+            {
+                img: "m10.jpg",
+                caption: "👶 胎儿发育过程: 从受精卵分裂到器官成形，经过胚胎期、胎儿期逐步成熟，新生命在母体内奇妙演化。"
+            }
+        ];
+
+        // DOM 元素
+        const mainImage = document.getElementById('mainImage');
+        const imageCaption = document.getElementById('imageCaption');
+        const titleListEl = document.getElementById('titleList');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const toggleAutoBtn = document.getElementById('toggleAutoBtn');
+        const bgMusic = document.getElementById('bgMusic');
+        const musicToggle = document.getElementById('musicToggle');
+
+        // 状态变量
+        let currentIndex = 0;            // 0-9
+        let autoInterval = null;
+        const AUTO_DELAY = 5000;          // 5秒自动轮播
+
+        // ---------- 渲染右侧标题列表 ----------
+        function buildTitleList() {
+            titleListEl.innerHTML = '';
+            itemsData.forEach((item, idx) => {
+                const li = document.createElement('li');
+                li.setAttribute('data-index', idx);
+                // 为每个标题增加简约标识
+                const iconSpan = document.createElement('span');
+                iconSpan.textContent = getIconForIndex(idx);
+                iconSpan.style.fontSize = '1.1rem';
+                const textSpan = document.createElement('span');
+                // 简单提取标题: 从caption中提炼短标题 (为了整洁)
+                let shortTitle = '';
+                switch(idx) {
+                    case 0: shortTitle = '医学影像设备'; break;
+                    case 1: shortTitle = '人体内脏系统'; break;
+                    case 2: shortTitle = '肺部结构影像'; break;
+                    case 3: shortTitle = '大脑活动区域'; break;
+                    case 4: shortTitle = 'DNA分子结构'; break;
+                    case 5: shortTitle = '人体骨骼系统'; break;
+                    case 6: shortTitle = '临床常用药物'; break;
+                    case 7: shortTitle = '神经元网络'; break;
+                    case 8: shortTitle = '血管与血液循环'; break;
+                    case 9: shortTitle = '胎儿发育过程'; break;
+                    default: shortTitle = `科普 ${idx+1}`;
+                }
+                textSpan.textContent = shortTitle;
+                li.appendChild(iconSpan);
+                li.appendChild(textSpan);
+                li.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const targetIndex = parseInt(li.getAttribute('data-index'));
+                    if (!isNaN(targetIndex)) {
+                        goToIndex(targetIndex);
+                        stopAutoPlay();       // 用户手动点击后暂停自动轮播 (符合预期: 点击后暂停，便于细看)
+                    }
+                });
+                titleListEl.appendChild(li);
+            });
+            updateActiveClass();
+        }
+
+        // 小图标点缀
+        function getIconForIndex(idx) {
+            const icons = ['🩻', '❤️', '🌬️', '🧠', '🧬', '🦴', '💊', '⚡', '🩸', '👶'];
+            return icons[idx] || '📌';
+        }
+
+        // 更新高亮样式
+        function updateActiveClass() {
+            const items = document.querySelectorAll('.title-list li');
+            items.forEach((li, idx) => {
+                if (idx === currentIndex) {
+                    li.classList.add('active');
+                } else {
+                    li.classList.remove('active');
+                }
+            });
+        }
+
+        // 切换图片 & 说明 (核心显示)
+        function goToIndex(index) {
+            if (index < 0) index = 0;
+            if (index >= itemsData.length) index = itemsData.length - 1;
+            currentIndex = index;
+            const data = itemsData[currentIndex];
+            // 更新图片 - 基于相对路径 ../images/ + 文件名
+            const imgPath = `../images/${data.img}`;
+            // 淡入淡出过渡视觉效果
+            mainImage.style.opacity = '0.6';
+            setTimeout(() => {
+                mainImage.src = imgPath;
+                mainImage.onload = () => {
+                    mainImage.style.opacity = '1';
+                };
+                mainImage.onerror = () => {
+                    // 如果图片缺失，显示占位友好提示（不影响体验）
+                    mainImage.src = '';
+                    mainImage.alt = '图片加载中...';
+                    mainImage.style.opacity = '1';
+                    imageCaption.textContent = '🖼️ 图片资源加载失败，请检查 images 文件夹下对应文件。';
+                };
+            }, 80);
+            // 更新说明文字
+            imageCaption.textContent = data.caption;
+            // 更新右侧激活样式
+            updateActiveClass();
+        }
+
+        // 上一张/下一张逻辑
+        function prevImage() {
+            let newIndex = currentIndex - 1;
+            if (newIndex < 0) newIndex = itemsData.length - 1;
+            goToIndex(newIndex);
+            stopAutoPlay();      // 手动切换时停止自动轮播 (符合常用交互)
+        }
+
+        function nextImage() {
+            let newIndex = currentIndex + 1;
+            if (newIndex >= itemsData.length) newIndex = 0;
+            goToIndex(newIndex);
+            stopAutoPlay();
+        }
+
+        // 自动轮播控制
+        function startAutoPlay() {
+            if (autoInterval) clearInterval(autoInterval);
+            autoInterval = setInterval(() => {
+                // 自动切换到下一张
+                let nextIdx = currentIndex + 1;
+                if (nextIdx >= itemsData.length) nextIdx = 0;
+                goToIndex(nextIdx);
+            }, AUTO_DELAY);
+            toggleAutoBtn.textContent = '⏸ 暂停轮播';
+            toggleAutoBtn.style.background = '#eef2fc';
+        }
+
+        function stopAutoPlay() {
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+            }
+            toggleAutoBtn.textContent = '▶ 开始轮播';
+        }
+
+        function toggleAutoPlay() {
+            if (autoInterval) {
+                stopAutoPlay();
+            } else {
+                startAutoPlay();
+            }
+        }
+
+        // ---------- 背景音乐处理 (自动播放策略 & 用户交互解锁) ----------
+        // 由于浏览器策略限制自动播放，需要用户首次任意交互后确保播放。
+        // 优雅做法: 页面加载尝试播放，若因策略失败，监听一次用户点击任意地方尝试播放。
+        let musicPlayAttempted = false;
+        function attemptPlayMusic() {
+            if (bgMusic && musicToggle.checked) {
+                bgMusic.play().catch(e => {
+                    console.log("自动播放受限，等待用户交互后播放音乐");
+                    // 添加一次性全局交互来启动音乐
+                    const resumeMusic = () => {
+                        if (musicToggle.checked && bgMusic.paused) {
+                            bgMusic.play().catch(err => console.log("播放失败", err));
+                        }
+                        document.removeEventListener('click', resumeMusic);
+                        document.removeEventListener('touchstart', resumeMusic);
+                    };
+                    document.addEventListener('click', resumeMusic);
+                    document.addEventListener('touchstart', resumeMusic);
+                });
+            }
+        }
+
+        // 监听音乐开关
+        if (musicToggle) {
+            musicToggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    bgMusic.play().catch(() => {});
+                } else {
+                    bgMusic.pause();
+                }
+            });
+        }
+
+        // 页面加载时安静尝试播放背景音乐
+        window.addEventListener('load', () => {
+            buildTitleList();      // 构建右侧标题列表
+            goToIndex(0);          // 显示第一张图片 (m01.jpg)
+            startAutoPlay();       // 默认自动轮播 (5秒换图)
+            // 音乐尝试自动播放（现代浏览器需要用户交互，但添加轻柔策略）
+            if (bgMusic) {
+                bgMusic.volume = 0.5;  // 设置合适音量
+                bgMusic.loop = true;
+                // 尝试自动播放 (注意: 大部分现代浏览器会在用户与页面交互前禁止Audio自动播放)
+                // 但我们会随用户点击任何控制按钮或区域，自动恢复播放（优雅处理）
+                const playPromise = bgMusic.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {
+                        // 静默失败，等待用户首次点击任意区域时尝试
+                        const enableAudioOnInteraction = () => {
+                            if (musicToggle.checked && bgMusic.paused) {
+                                bgMusic.play().catch(e => console.log);
+                            }
+                            document.removeEventListener('click', enableAudioOnInteraction);
+                            document.removeEventListener('touchstart', enableAudioOnInteraction);
+                        };
+                        document.addEventListener('click', enableAudioOnInteraction);
+                        document.addEventListener('touchstart', enableAudioOnInteraction);
+                    });
+                }
+            }
+        });
+
+        // 暴露全局清除（可选防止内存）
+        window.addEventListener('beforeunload', () => {
+            if (autoInterval) clearInterval(autoInterval);
+        });
+
+        // 绑定按钮事件
+        prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            prevImage();
+        });
+        nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            nextImage();
+        });
+        toggleAutoBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleAutoPlay();
+        });
+
+        // 额外保证如果点击了标题列表中的项目后已停止轮播；
+        // 并且增加一个简单的键盘支持：左右方向键切换（提升可用性）
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevImage();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                nextImage();
+            } else if (e.key === ' ' || e.key === 'Space') {
+                // 空格键切换轮播
+                e.preventDefault();
+                toggleAutoPlay();
+            }
+        });
+
+        // 图片加载失败时的后备处理 (保证图片路径正确提示)
+        mainImage.onerror = function() {
+            // 如果图片路径不存在，清晰提示但不打断使用
+            this.src = '';
+            this.alt = '图片未找到';
+            imageCaption.textContent = `⚠️ 无法加载图片 "${itemsData[currentIndex]?.img}"，请确认 images 文件夹下存在相应文件。`;
+        };
+        
+        // 优雅的初始同步：确保当前选中索引样式随着goToIndex完美更新
+        // 并且为了轮播重启设置标志，startAutoPlay已经调用
+        // 满足“简约风格+自动轮播+背景音乐+右侧列表点击切换”
+        // 额外增加音乐循环再确认
+        if (bgMusic) {
+            bgMusic.addEventListener('ended', function() {
+                // 循环播放由loop属性负责，确保loop为true
+                this.currentTime = 0;
+                this.play().catch(()=>{});
+            });
+        }
+
+        // 如果用户从主站点击左侧导航重新加载该页面，一切正常
+        // 确保所有图片路径和音频路径符合 ../images/ 和 ../audios/bg03.mp3
+        console.log("医学科普画廊已启动 — 简约风格 | 自动轮播 | 背景音乐支持");
+    })();
+</script>
+</body>
+</html>

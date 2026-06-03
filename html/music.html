@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>音乐驿站 · 时光唱片集</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* 避免拖动干扰，但不影响文字选择 */
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #fefaf5;
+            background-image: radial-gradient(circle at 10% 30%, rgba(230, 210, 180, 0.15) 2%, transparent 2.5%);
+            background-size: 32px 32px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        /* 主容器：简约白卡片 + 柔和阴影 */
+        .music-station {
+            max-width: 1300px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 2rem;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            transition: all 0.2s;
+            border: 1px solid #f3ede5;
+        }
+
+        /* 左侧唱片播放区 (圆形唱盘) */
+        .player-section {
+            flex: 1.2;
+            min-width: 280px;
+            background: #fffcf7;
+            padding: 2rem 1.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid #f0e7dd;
+        }
+
+        /* 唱片圆盘容器 */
+        .disc-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto 1.8rem;
+            display: flex;
+            justify-content: center;
+        }
+        .vinyl {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #f1ede7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 20px 30px -8px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.8);
+            transition: box-shadow 0.2s;
+        }
+        .cover-img {
+            width: 72%;
+            height: 72%;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s;
+            background: #f5ede2;
+        }
+        /* 旋转动画 (唱片效果) */
+        .spin {
+            animation: rotateDisc 6s linear infinite;
+        }
+        @keyframes rotateDisc {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 控制栏简约 */
+        .controls {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            align-items: center;
+            margin: 1.2rem 0 1rem;
+            flex-wrap: wrap;
+        }
+        .ctrl-btn {
+            background: #f8f3ec;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 60px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #7d6142;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .ctrl-btn:hover {
+            background: #efe2d4;
+            transform: scale(0.96);
+            color: #b45f2b;
+        }
+        .play-pause {
+            background: #e7d9cb;
+            width: 56px;
+            height: 56px;
+            font-size: 1.8rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .mode-group {
+            display: flex;
+            gap: 12px;
+            background: #faf6f0;
+            padding: 0.3rem 0.9rem;
+            border-radius: 60px;
+        }
+        .mode-btn {
+            background: transparent;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0.4rem 0.8rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #a88864;
+        }
+        .mode-btn.active {
+            background: #e2d4c4;
+            color: #5e3a22;
+            box-shadow: inset 0 1px 1px rgba(0,0,0,0.02);
+        }
+        .song-title-mini {
+            font-size: 0.9rem;
+            color: #ac8f6e;
+            margin-top: 6px;
+            font-weight: 450;
+        }
+
+        /* 右侧列表区域 */
+        .playlist-section {
+            flex: 0.9;
+            min-width: 260px;
+            background: #ffffff;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .playlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 2px solid #f2e5d8;
+            padding-bottom: 12px;
+            margin-bottom: 1.2rem;
+        }
+        .playlist-header h3 {
+            font-weight: 500;
+            color: #7d5f42;
+            letter-spacing: 1px;
+            font-size: 1.3rem;
+        }
+        .now-playing-badge {
+            font-size: 0.7rem;
+            background: #f2ebe2;
+            padding: 4px 12px;
+            border-radius: 60px;
+            color: #b57748;
+        }
+        .song-list {
+            list-style: none;
+            margin-bottom: 1.8rem;
+            flex: 1;
+        }
+        .song-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 12px;
+            margin: 6px 0;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fefaf5;
+            border: 1px solid #f4ede5;
+        }
+        .song-item:hover {
+            background: #faf1e8;
+            transform: translateX(4px);
+        }
+        .song-item.active {
+            background: #f8efe5;
+            border-left: 4px solid #cd9f6e;
+            font-weight: 500;
+        }
+        .song-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .song-name {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #5c3f28;
+        }
+        .song-artist {
+            font-size: 0.7rem;
+            color: #b29273;
+        }
+        .playing-icon {
+            font-size: 0.8rem;
+            color: #dd9462;
+        }
+        /* 点评区域 */
+        .review-box {
+            background: #fef9f2;
+            padding: 18px 16px;
+            border-radius: 28px;
+            margin-top: 10px;
+            border: 1px solid #f3e7db;
+        }
+        .review-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #c28b55;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .review-text {
+            font-size: 0.85rem;
+            line-height: 1.45;
+            color: #7f6242;
+            font-style: italic;
+        }
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 18px;
+            color: #cfbb9e;
+        }
+        @media (max-width: 780px) {
+            .music-station { flex-direction: column; }
+            .player-section { border-right: none; border-bottom: 1px solid #f0e7dd; }
+        }
+    </style>
+</head>
+<body>
+<div class="music-station">
+    <!-- 左侧 黑胶唱片区 -->
+    <div class="player-section">
+        <div class="disc-wrapper">
+            <div class="vinyl" id="vinylDisc">
+                <img id="coverImage" class="cover-img" src="../images/cover01.png" alt="唱片封面">
+            </div>
+        </div>
+        <div class="controls">
+            <button class="ctrl-btn" id="prevBtn" title="上一首">⏮</button>
+            <button class="ctrl-btn play-pause" id="playPauseBtn" title="播放/暂停">▶</button>
+            <button class="ctrl-btn" id="nextBtn" title="下一首">⏭</button>
+        </div>
+        <div class="mode-group">
+            <button class="mode-btn" id="loopModeBtn" data-mode="loop">🔁 循环</button>
+            <button class="mode-btn" id="randomModeBtn" data-mode="random">🎲 随机</button>
+        </div>
+        <div class="song-title-mini" id="nowPlayingMini">晴天 · 周杰伦</div>
+    </div>
+
+    <!-- 右侧 歌单 + 点评 -->
+    <div class="playlist-section">
+        <div class="playlist-header">
+            <h3>🎵 音乐驿站</h3>
+            <div class="now-playing-badge" id="nowPlayingLabel">现播: 晴天</div>
+        </div>
+        <ul class="song-list" id="playlist">
+            <!-- 动态js生成, 但便于结构预先写好也行, 使用js动态渲染确保对应 -->
+        </ul>
+        <div class="review-box" id="reviewBox">
+            <div class="review-title">📖 简评 · 时光随笔</div>
+            <div class="review-text" id="reviewText">
+                前奏响起就是青春的夏天，旋律清新，如同阳光下的微风。
+            </div>
+        </div>
+        <footer>⚡ 旋转唱片 | 沉浸式听觉驿站</footer>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // ---------- 歌曲数据 ----------
+        const songs = [
+            {
+                id: 0,
+                name: "晴天",
+                artist: "周杰伦",
+                file: "../audios/m01.mp3",
+                cover: "../images/cover01.png",
+                review: "🌞 前奏一响就是校园与晴空，青春里的暗恋与勇气，旋律温暖治愈，经典永不过时。"
+            },
+            {
+                id: 1,
+                name: "稻香",
+                artist: "周杰伦",
+                file: "../audios/m02.mp3",
+                cover: "../images/cover02.png",
+                review: "🌾 回到最初的美好，知足与感恩。稻田、萤火虫，治愈浮躁的心灵，正能量满满。"
+            },
+            {
+                id: 2,
+                name: "爱在西元前",
+                artist: "周杰伦",
+                file: "../audios/m03.mp3",
+                cover: "../images/cover03.png",
+                review: "🏺 古巴比伦的浪漫，神秘且深情。旋律穿梭时空，将历史写进情歌，独具一格。"
+            }
+        ];
+
+        // DOM 元素
+        const audioPlayer = new Audio();
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const loopModeBtn = document.getElementById('loopModeBtn');
+        const randomModeBtn = document.getElementById('randomModeBtn');
+        const coverImage = document.getElementById('coverImage');
+        const nowPlayingMini = document.getElementById('nowPlayingMini');
+        const nowPlayingLabel = document.getElementById('nowPlayingLabel');
+        const reviewText = document.getElementById('reviewText');
+        const playlistContainer = document.getElementById('playlist');
+        const vinylDisc = document.getElementById('vinylDisc'); // 容器用于旋转效果
+
+        // 状态变量
+        let currentIndex = 0;           // 当前歌曲索引 0~2
+        let isPlaying = false;
+        let playMode = "loop";           // 'loop' 或 'random'
+        let isRotating = false;          // 唱片旋转状态
+        let rotationInterval = null;      // 仅用于样式class控制，最好用class即可，旋转动画由CSS控制
+        
+        // 辅助函数: 更新唱片封面及旋转动画
+        function updateCoverAndSpin() {
+            const coverUrl = songs[currentIndex].cover;
+            coverImage.src = coverUrl;
+            // 如果正在播放且旋转动画未添加则添加
+            if (isPlaying) {
+                startSpinAnimation();
+            } else {
+                stopSpinAnimation();
+            }
+        }
+
+        // 开始旋转 (添加class)
+        function startSpinAnimation() {
+            if (!coverImage.classList.contains('spin')) {
+                coverImage.classList.add('spin');
+            }
+            isRotating = true;
+        }
+        function stopSpinAnimation() {
+            if (coverImage.classList.contains('spin')) {
+                coverImage.classList.remove('spin');
+            }
+            isRotating = false;
+        }
+
+        // 刷新UI：高亮列表、更新文字、点评、播放器图标
+        function updateUI() {
+            // 更新右侧列表激活样式
+            const items = document.querySelectorAll('.song-item');
+            items.forEach((item, idx) => {
+                if (idx === currentIndex) {
+                    item.classList.add('active');
+                    // 显示“播放中”图标
+                    let playingSpan = item.querySelector('.playing-icon');
+                    if (!playingSpan) {
+                        playingSpan = document.createElement('span');
+                        playingSpan.className = 'playing-icon';
+                        playingSpan.innerText = '🎵';
+                        item.appendChild(playingSpan);
+                    } else {
+                        playingSpan.innerText = '🎵';
+                    }
+                } else {
+                    item.classList.remove('active');
+                    const playingSpan = item.querySelector('.playing-icon');
+                    if (playingSpan) playingSpan.innerText = '';
+                }
+            });
+            // 更新现在播放的文字
+            const currentSong = songs[currentIndex];
+            nowPlayingMini.innerText = `${currentSong.name} · ${currentSong.artist}`;
+            nowPlayingLabel.innerText = `现播: ${currentSong.name}`;
+            reviewText.innerText = currentSong.review;
+            // 更新封面
+            coverImage.src = currentSong.cover;
+            // 如果有音频资源改变，确保音频加载
+            if (audioPlayer.src !== currentSong.file) {
+                audioPlayer.src = currentSong.file;
+                // 如果之前是播放状态，重新加载后自动播放
+                if (isPlaying) {
+                    audioPlayer.play().catch(e => console.log("自动播放受限，需用户交互", e));
+                }
+            }
+            // 更新播放按钮图标
+            if (isPlaying) {
+                playPauseBtn.innerHTML = '⏸';
+            } else {
+                playPauseBtn.innerHTML = '▶';
+            }
+            // 确保旋转与播放状态一致
+            if (isPlaying) {
+                startSpinAnimation();
+            } else {
+                stopSpinAnimation();
+            }
+        }
+
+        // 播放当前歌曲
+        function playCurrentSong() {
+            const song = songs[currentIndex];
+            if (audioPlayer.src !== song.file) {
+                audioPlayer.src = song.file;
+            }
+            audioPlayer.play()
+                .then(() => {
+                    isPlaying = true;
+                    updateUI();
+                    startSpinAnimation();
+                })
+                .catch(err => {
+                    console.warn("播放失败: ", err);
+                    isPlaying = false;
+                    updateUI();
+                });
+        }
+
+        // 暂停
+        function pauseCurrentSong() {
+            audioPlayer.pause();
+            isPlaying = false;
+            stopSpinAnimation();
+            updateUI();
+        }
+
+        // 播放/暂停切换
+        function togglePlayPause() {
+            if (isPlaying) {
+                pauseCurrentSong();
+            } else {
+                playCurrentSong();
+            }
+        }
+
+        // 下一首（根据模式）
+        function nextSong() {
+            if (playMode === 'random') {
+                let newIndex = currentIndex;
+                while (newIndex === currentIndex && songs.length > 1) {
+                    newIndex = Math.floor(Math.random() * songs.length);
+                }
+                currentIndex = newIndex;
+            } else {
+                // 循环模式
+                currentIndex = (currentIndex + 1) % songs.length;
+            }
+            // 如果当前处于播放状态，则自动播放新歌
+            const wasPlaying = isPlaying;
+            // 重新加载音频
+            audioPlayer.src = songs[currentIndex].file;
+            if (wasPlaying) {
+                playCurrentSong();
+            } else {
+                // 不播放但更新UI和封面数据
+                updateUI();
+                // 确保音频资源预加载但不自动播放
+                audioPlayer.load();
+                isPlaying = false;
+                updateUI();
+                stopSpinAnimation();
+            }
+        }
+
+        // 上一首
+        function prevSong() {
+            if (playMode === 'random') {
+                let newIndex = currentIndex;
+                while (newIndex === currentIndex && songs.length > 1) {
+                    newIndex = Math.floor(Math.random() * songs.length);
+                }
+                currentIndex = newIndex;
+            } else {
+                currentIndex = (currentIndex - 1 + songs.length) % songs.length;
+            }
+            const wasPlaying = isPlaying;
+            audioPlayer.src = songs[currentIndex].file;
+            if (wasPlaying) {
+                playCurrentSong();
+            } else {
+                updateUI();
+                audioPlayer.load();
+                isPlaying = false;
+                updateUI();
+                stopSpinAnimation();
+            }
+        }
+
+        // 选择列表歌曲
+        function selectSong(index) {
+            if (currentIndex === index && isPlaying) {
+                // 相同歌曲不做切换，保持播放
+                return;
+            }
+            currentIndex = index;
+            const wasPlaying = isPlaying;
+            audioPlayer.src = songs[currentIndex].file;
+            if (wasPlaying) {
+                playCurrentSong();
+            } else {
+                updateUI();
+                audioPlayer.load();
+                isPlaying = false;
+                updateUI();
+                stopSpinAnimation();
+            }
+        }
+
+        // 设置播放模式并更新按钮样式
+        function setPlayMode(mode) {
+            playMode = mode;
+            if (mode === 'loop') {
+                loopModeBtn.classList.add('active');
+                randomModeBtn.classList.remove('active');
+            } else {
+                randomModeBtn.classList.add('active');
+                loopModeBtn.classList.remove('active');
+            }
+            // 可选：额外设置audio循环属性 (如果是单曲循环，但需求是列表循环/随机，不用单曲循环)
+            // 列表循环依靠next逻辑实现，audio的loop属性不设置，避免单曲循环。
+            audioPlayer.loop = false;
+        }
+
+        // 监听音频结束事件
+        function bindAudioEvents() {
+            audioPlayer.addEventListener('ended', () => {
+                // 根据模式切换到下一首
+                if (playMode === 'loop') {
+                    // 列表循环
+                    currentIndex = (currentIndex + 1) % songs.length;
+                } else if (playMode === 'random') {
+                    let newIndex = currentIndex;
+                    while (newIndex === currentIndex && songs.length > 1) {
+                        newIndex = Math.floor(Math.random() * songs.length);
+                    }
+                    currentIndex = newIndex;
+                }
+                // 自动播放下一首
+                audioPlayer.src = songs[currentIndex].file;
+                audioPlayer.play().catch(e => console.log("自动播放被阻止"));
+                isPlaying = true;
+                updateUI();
+                startSpinAnimation();
+            });
+            // 监听播放错误 (文件可能不存在)
+            audioPlayer.addEventListener('error', (e) => {
+                console.error("音频加载错误: 请检查路径 ../audios/m01.mp3 等文件是否存在");
+                reviewText.innerText = "⚠️ 音频文件未找到，请确保音乐文件放置在 ../audios/ 目录下";
+            });
+        }
+
+        // 构建右侧播放列表渲染
+        function buildPlaylist() {
+            playlistContainer.innerHTML = '';
+            songs.forEach((song, idx) => {
+                const li = document.createElement('li');
+                li.className = 'song-item';
+                li.setAttribute('data-index', idx);
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'song-info';
+                const nameSpan = document.createElement('div');
+                nameSpan.className = 'song-name';
+                nameSpan.innerText = `${song.name}`;
+                const artistSpan = document.createElement('div');
+                artistSpan.className = 'song-artist';
+                artistSpan.innerText = song.artist;
+                infoDiv.appendChild(nameSpan);
+                infoDiv.appendChild(artistSpan);
+                li.appendChild(infoDiv);
+                // 播放状态图标预留
+                const playingIcon = document.createElement('span');
+                playingIcon.className = 'playing-icon';
+                li.appendChild(playingIcon);
+                li.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectSong(idx);
+                });
+                playlistContainer.appendChild(li);
+            });
+            updateUI(); // 高亮当前激活
+        }
+
+        // 初始化加载设置
+        function init() {
+            buildPlaylist();
+            bindAudioEvents();
+            // 默认第一首歌曲晴天
+            currentIndex = 0;
+            audioPlayer.src = songs[0].file;
+            audioPlayer.load();
+            isPlaying = false;
+            updateUI();
+            stopSpinAnimation();
+            setPlayMode('loop');  // 默认循环模式
+            
+            // 绑定按钮事件
+            playPauseBtn.addEventListener('click', togglePlayPause);
+            prevBtn.addEventListener('click', prevSong);
+            nextBtn.addEventListener('click', nextSong);
+            loopModeBtn.addEventListener('click', () => setPlayMode('loop'));
+            randomModeBtn.addEventListener('click', () => setPlayMode('random'));
+            
+            // 确保点击唱片中心不会误操作，但可以不加额外动作
+            // 另如果用户手动点击外部? 无需
+            // 页面加载完毕后，如果由于浏览器策略自动播放被禁止，显示提示轻交互，不自动播放
+            // 优雅处理: 等待首次用户点击页面任意播放按钮才开始播放, 默认未播放状态
+            // 为了防止移动端自动播放策略，不自动启动播放，等待用户点击播放按钮.
+            // 将初始 isPlaying = false，非常好。
+            console.log("音乐驿站已启动，默认未播放，点击播放按钮后唱片旋转");
+        }
+        
+        init();
+    })();
+</script>
+</body>
+</html>

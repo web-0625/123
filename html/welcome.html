@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>欢迎 | 医学人工智能导论</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 'Noto Sans', sans-serif;
+            min-height: 100vh;
+            background: #f5f7fb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 简约动态背景 - 柔和的渐变流动 */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: linear-gradient(125deg, #e8f0f8 0%, #dce6f0 40%, #eef3fc 100%);
+            overflow: hidden;
+        }
+
+        /* 简约浮动光晕 - 动态效果 */
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            animation: floatSlow 20s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
+            width: 50vw;
+            height: 50vw;
+            background: #b3d9ff;
+            top: -20%;
+            left: -15%;
+            animation-duration: 18s;
+        }
+
+        .orb-2 {
+            width: 45vw;
+            height: 45vw;
+            background: #c2e0ff;
+            bottom: -25%;
+            right: -10%;
+            animation-duration: 22s;
+            animation-delay: -5s;
+        }
+
+        .orb-3 {
+            width: 35vw;
+            height: 35vw;
+            background: #a8d0f0;
+            top: 40%;
+            left: 60%;
+            animation-duration: 25s;
+            animation-delay: -10s;
+            opacity: 0.3;
+        }
+
+        @keyframes floatSlow {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                transform: translate(40px, -30px) scale(1.1);
+            }
+        }
+
+        /* 简约主卡片 - 干净留白 */
+        .welcome-card {
+            position: relative;
+            z-index: 10;
+            max-width: 680px;
+            width: 85%;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(8px);
+            border-radius: 2rem;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: transform 0.25s ease, box-shadow 0.3s ease;
+        }
+
+        .welcome-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 28px 40px -16px rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 欢迎主文字 */
+        .greeting-text {
+            font-size: 2.1rem;
+            font-weight: 500;
+            line-height: 1.4;
+            letter-spacing: -0.3px;
+            color: #1a3e50;
+            margin-bottom: 1rem;
+        }
+
+        .greeting-text strong {
+            font-weight: 600;
+            background: linear-gradient(120deg, #1c5a7a, #2c7aa8);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        /* 简约装饰线 */
+        .divider {
+            width: 60px;
+            height: 2px;
+            background: #bdd4e8;
+            margin: 1.5rem auto 1rem;
+            border-radius: 2px;
+        }
+
+        .sub {
+            font-size: 0.85rem;
+            color: #6f8eaa;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        /* 音乐控制简约按钮 */
+        .music-control {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 30;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 40px;
+            padding: 8px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            color: #2c6280;
+            border: 1px solid rgba(100, 140, 170, 0.25);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 450;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .music-control:hover {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(70, 130, 170, 0.4);
+            transform: scale(1.02);
+        }
+
+        .music-icon {
+            font-size: 1rem;
+        }
+
+        /* 简约的淡入动画 */
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-card {
+            animation: fadeUp 0.6s ease-out;
+        }
+
+        /* 响应式 */
+        @media (max-width: 560px) {
+            .greeting-text {
+                font-size: 1.5rem;
+            }
+            .welcome-card {
+                padding: 2rem 1.2rem;
+                width: 88%;
+            }
+            .music-control {
+                padding: 5px 14px;
+                font-size: 0.7rem;
+                bottom: 16px;
+                right: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 简约动态背景 -->
+<div class="animated-bg">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+</div>
+
+<!-- 欢迎卡片 -->
+<div class="welcome-card">
+    <div class="greeting-text">
+        欢迎来和我一起学习<br><strong>医学人工智能导论</strong>
+    </div>
+    <div class="divider"></div>
+    <div class="sub">探索智慧医疗 · 共赴未来</div>
+</div>
+
+<!-- 音乐简约控制按钮 -->
+<div class="music-control" id="musicToggle">
+    <span class="music-icon" id="musicIcon">🎵</span>
+    <span id="musicStatus">轻音乐 播放中</span>
+</div>
+
+<script>
+    (function() {
+        // ----- 简约背景动画：追加细微的粒子/移动光点，但不复杂保持简约风格 -----
+        // 为了满足“背景动画”，除了已有的浮动光晕，再增加一个极简的动态移动光点层(Canvas轻量)
+        const canvas = document.createElement('canvas');
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.zIndex = '1';
+        const bgDiv = document.querySelector('.animated-bg');
+        if (bgDiv) {
+            bgDiv.appendChild(canvas);
+        } else {
+            document.body.appendChild(canvas);
+        }
+        
+        let ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let animationId = null;
+        
+        // 简约粒子数量少，干净
+        const PARTICLE_COUNT = 35;
+        
+        class LightParticle {
+            constructor(x, y, radius, speedX, speedY, opacity) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.speedX = speedX;
+                this.speedY = speedY;
+                this.opacity = opacity;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < -20) this.x = width + 20;
+                if (this.x > width + 20) this.x = -20;
+                if (this.y < -20) this.y = height + 20;
+                if (this.y > height + 20) this.y = -20;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(140, 190, 225, ${this.opacity * 0.5})`;
+                ctx.fill();
+                // 极简光晕
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = 'rgba(100, 160, 210, 0.3)';
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const radius = Math.random() * 3 + 1.5;
+                const x = Math.random() * width;
+                const y = Math.random() * height;
+                const speedX = (Math.random() - 0.5) * 0.35;
+                const speedY = (Math.random() - 0.5) * 0.2;
+                const opacity = Math.random() * 0.4 + 0.2;
+                particles.push(new LightParticle(x, y, radius, speedX, speedY, opacity));
+            }
+        }
+        
+        function drawParticles() {
+            for (let p of particles) {
+                p.update();
+                p.draw();
+            }
+        }
+        
+        function animateCanvas() {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, width, height);
+            drawParticles();
+            animationId = requestAnimationFrame(animateCanvas);
+        }
+        
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            if (ctx) {
+                ctx.clearRect(0, 0, width, height);
+                initParticles();
+            }
+        }
+        
+        // 延迟启动canvas确保dom加载完成
+        window.addEventListener('load', () => {
+            if (canvas) {
+                ctx = canvas.getContext('2d');
+                resizeCanvas();
+                initParticles();
+                animateCanvas();
+            }
+        });
+        
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+        });
+        
+        // ----- 背景音乐自动播放（简约轻音乐）-----
+        // 使用稳健的无版权/CC0 轻音乐链接（Pixabay 授权  ambient 音乐，简约风格，适合学习）
+        // 保证自动播放策略: 先尝试静音自动播放? 现代浏览器要求用户交互前不能有声播放，但本次需求"自动播放背景音乐"我们采用:
+        // 加载后音乐静音尝试自动播放，然后通过一个全局首次点击（或卡片区域）解除静音, 但为了体验且符合"自动播放", 我们可以让音乐初始音量0并播放，然后平滑增加音量？交互会更友好。
+        // 但为了满足"自动播放" 且简约风格，我们构造一个Audio元素，并加入一个巧妙的“用户首次任意点击”解除静音但已经听觉上有声音,很多网站做法。
+        // 由于自动播放策略严格，更可靠：尝试有声播放，如果失败则静音播放，然后显示提示点击任意区域激活。完全自动播放背景音乐的方法基本需要用户交互。
+        // 但在欢迎页，我们可以默认先让音乐以极低音量开始并尝试play，若被阻止则添加一次性解锁交互。同时用户也可以通过右下按钮控制。
+        // 为满足自动播放期望，确保用户一进入页面就有音乐（如果浏览器策略允许）。
+        const bgMusic = new Audio();
+        // 简约风格轻音乐 - 优雅纯钢琴/氛围音乐 免版税
+        bgMusic.src = 'https://cdn.pixabay.com/download/audio/2022/05/16/audio_18b5c9a5a6.mp3?filename=lofi-study-112191.mp3';
+        bgMusic.loop = true;
+        bgMusic.volume = 0.28;
+        let musicPlaying = false;
+        let unlockAttempted = false;
+        
+        const musicToggleBtn = document.getElementById('musicToggle');
+        const musicStatusSpan = document.getElementById('musicStatus');
+        const musicIconSpan = document.getElementById('musicIcon');
+        
+        function updateMusicUI(playing) {
+            if (musicStatusSpan) {
+                musicStatusSpan.innerText = playing ? '轻音乐 播放中' : '音乐已暂停';
+            }
+            if (musicIconSpan) {
+                musicIconSpan.innerText = playing ? '🎵' : '🔇';
+            }
+        }
+        
+        function playMusic() {
+            bgMusic.play().then(() => {
+                musicPlaying = true;
+                updateMusicUI(true);
+            }).catch(err => {
+                console.warn('自动播放被阻止，需要用户交互', err);
+                musicPlaying = false;
+                updateMusicUI(false);
+                // 解锁监听：用户首次点击页面任意位置（简约风格）
+                if (!unlockAttempted) {
+                    unlockAttempted = true;
+                    const unlock = () => {
+                        bgMusic.play().then(() => {
+                            musicPlaying = true;
+                            updateMusicUI(true);
+                        }).catch(e => console.log("解锁失败", e));
+                        document.removeEventListener('click', unlock);
+                        document.removeEventListener('touchstart', unlock);
+                    };
+                    document.addEventListener('click', unlock, { once: true });
+                    document.addEventListener('touchstart', unlock, { once: true });
+                    // 额外：显示简约的小提示（可选项，非干扰）
+                    const tip = document.createElement('div');
+                    tip.innerText = '🎵 点击任意位置开启音乐';
+                    tip.style.position = 'fixed';
+                    tip.style.bottom = '80px';
+                    tip.style.right = '24px';
+                    tip.style.fontSize = '0.7rem';
+                    tip.style.background = 'rgba(0,0,0,0.4)';
+                    tip.style.color = '#eef5ff';
+                    tip.style.padding = '4px 12px';
+                    tip.style.borderRadius = '20px';
+                    tip.style.zIndex = '40';
+                    tip.style.backdropFilter = 'blur(4px)';
+                    tip.style.pointerEvents = 'none';
+                    document.body.appendChild(tip);
+                    setTimeout(() => {
+                        tip.style.opacity = '0';
+                        setTimeout(() => tip.remove(), 1000);
+                    }, 2800);
+                }
+            });
+        }
+        
+        // 尝试自动播放音乐 (不静音，但会被浏览器阻止，优雅降级)
+        setTimeout(() => {
+            playMusic();
+        }, 100);
+        
+        // 音乐按钮切换
+        if (musicToggleBtn) {
+            musicToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (musicPlaying) {
+                    bgMusic.pause();
+                    musicPlaying = false;
+                    updateMusicUI(false);
+                } else {
+                    bgMusic.play().then(() => {
+                        musicPlaying = true;
+                        updateMusicUI(true);
+                    }).catch(err => {
+                        console.log('播放失败', err);
+                        updateMusicUI(false);
+                    });
+                }
+            });
+        }
+        
+        // 可选：在页面上优雅处理音乐加载错误备用链接
+        bgMusic.addEventListener('error', () => {
+            // 备用链接（第二简约音乐源）
+            if (bgMusic.src.indexOf('lofi-study') !== -1) {
+                bgMusic.src = 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_5a3c5c9c5a.mp3?filename=calm-ambient-117735.mp3';
+                bgMusic.load();
+                if (!musicPlaying) {
+                    setTimeout(() => playMusic(), 300);
+                }
+            }
+        });
+        
+        // 给卡片增加简单鼠标跟随效果提升动态感？不过分。简约风格 + 背景动画足够了。
+        // 为了增加额外简约动态，可以用简单的CSS改变浮动缓动
+        const card = document.querySelector('.welcome-card');
+        if (card) {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+                card.style.transform = `perspective(800px) rotateY(${x * 1.5}deg) rotateX(${-y * 1}deg) translateY(-4px)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(-4px)';
+                setTimeout(() => {
+                    card.style.transform = '';
+                }, 200);
+            });
+        }
+        
+        // 提供简单字体加载稳定
+        // 最终完全满足（1）欢迎文字（2）自动背景音乐 + 背景动画（简约风格）
+        // 背景动画已包含浮动光晕+粒子系统
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>发展历程 | 医学人工智能导论</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            background: #f8fafc;
+            color: #1a2c3e;
+            line-height: 1.5;
+        }
+
+        /* ---------- 顶部固定音频播放器区域 (简约风格) ---------- */
+        .audio-player-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(70, 130, 170, 0.2);
+            padding: 12px 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        }
+
+        .player-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ctrl-btn {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: #2c6280;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(44, 124, 150, 0.12);
+            transform: scale(1.05);
+        }
+
+        .time-display {
+            font-size: 0.8rem;
+            font-family: monospace;
+            color: #3c6e8c;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-wrapper {
+            flex: 1;
+            min-width: 180px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 5px;
+            background: #d4e0e8;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #2c7cb6;
+            border-radius: 5px;
+            transition: width 0.05s linear;
+            position: relative;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.03);
+            padding: 4px 10px;
+            border-radius: 40px;
+        }
+
+        .volume-icon {
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .volume-slider {
+            width: 70px;
+            cursor: pointer;
+            accent-color: #2c7cb6;
+        }
+
+        /* 页面主要内容区域 (留出播放器占位) */
+        .history-content {
+            margin-top: 100px;
+            padding: 2rem 2rem 4rem;
+            max-width: 1300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* 每个阶段卡片 (简约网格布局) */
+        .stage-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        .stage-card {
+            display: flex;
+            flex-wrap: wrap;
+            background: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            overflow: hidden;
+            border: 1px solid #e9edf2;
+        }
+
+        .stage-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 28px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stage-img {
+            flex: 0 0 200px;
+            background: #f2f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .stage-img img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 1rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            transition: transform 0.25s;
+        }
+
+        .stage-img img:hover {
+            transform: scale(1.02);
+        }
+
+        .stage-info {
+            flex: 1;
+            padding: 1.2rem 1.8rem;
+        }
+
+        .stage-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1a4d6b;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid #2c7cb6;
+            padding-left: 0.75rem;
+        }
+
+        .stage-desc {
+            color: #2c4e6e;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-top: 0.5rem;
+        }
+
+        /* 响应式 */
+        @media (max-width: 700px) {
+            .stage-img {
+                flex: 0 0 100%;
+            }
+            .stage-img img {
+                height: 140px;
+                width: auto;
+                max-width: 100%;
+            }
+            .player-container {
+                gap: 8px;
+            }
+            .progress-wrapper {
+                min-width: 120px;
+            }
+            .history-content {
+                padding: 1rem;
+                margin-top: 110px;
+            }
+        }
+
+        /* ---------- 浮动窗口 (可折叠/展开/拖动，滚动时固定) ---------- */
+        .floating-window {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 220px;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.02);
+            z-index: 200;
+            border: 1px solid rgba(44, 124, 150, 0.25);
+            transition: box-shadow 0.2s;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .floating-window:active {
+            cursor: grabbing;
+        }
+
+        .window-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(44, 124, 150, 0.08);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-radius: 1rem 1rem 0 0;
+            cursor: move;
+        }
+
+        .window-title {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #2c6280;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #5685a3;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(0,0,0,0.08);
+        }
+
+        .window-content {
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .window-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            display: block;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 折叠样式 */
+        .floating-window.collapsed .window-content {
+            display: none;
+        }
+
+        .floating-window.collapsed {
+            width: auto;
+            min-width: 120px;
+        }
+
+        /* 占位确保可拖动体验 */
+        .no-transition {
+            transition: none !important;
+        }
+
+        /* 简约滚动条 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #eef2f6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #b9cfdf;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 顶部音频播放器 -->
+<div class="audio-player-fixed" id="audioPlayerBar">
+    <div class="player-container">
+        <div class="player-controls">
+            <button class="ctrl-btn" id="playPauseBtn" aria-label="播放/暂停">▶️</button>
+            <span class="time-display" id="currentTime">0:00</span>
+        </div>
+        <div class="progress-wrapper">
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span class="time-display" id="durationTime">0:00</span>
+        </div>
+        <div class="volume-control">
+            <span class="volume-icon" id="muteToggle">🔊</span>
+            <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.01" value="0.3">
+        </div>
+    </div>
+</div>
+
+<!-- 发展历程主要内容 (10个阶段) -->
+<div class="history-content">
+    <div class="stage-grid">
+        <!-- 阶段1: 萌芽期 -->
+        <div class="stage-card">
+            <div class="stage-img"><img src="../images/A01.jpg" alt="阶段1" onerror="this.src='https://placehold.co/300x180?text=Image+Not+Found'"></div>
+            <div class="stage-info"><div class="stage-title">① 1950s-1960s · 萌芽期</div><div class="stage-desc">人工智能概念诞生，医学领域开始探讨计算机辅助诊断的可能性。早期的专家系统雏形出现，用逻辑推理解决简单的医学问题。</div></div>
+        </div>
+        <!-- 阶段2 -->
+        <div class="stage-card">
+            <div class="stage-img"><img src="../images/A02.jpg" alt="阶段2" onerror="this.src='https://placehold.co/300x180?text=Image+Not+Found'"></div>
+            <div class="stage-info"><div class="stage-title">② 1970s · 专家系统崛起</div><div class="stage-desc">MYCIN等专家系统诞生，用于细菌感染诊断。虽然受限于算力，但为规则引擎在医学推理中奠定基石。</div></div>
+        </div>
+        <!-- 阶段3 -->
+        <div class="stage-card">
+            <div class="stage-img"><img src="../images/A03.jpg" alt="阶段3" onerror="this.src='https://placehold.co/300x180?text=Image+Not+Found'"></div>
+            <div class="stage-info"><div class="stage-title">③ 1980s · 知识工程与影像初探</div><div class="stage-desc">医学知识库建设兴起，早期医学图像处理算法开始用于X光片辅助分析，但准确率有限。</div></div>
+        </div>
+        <!-- 阶段4 -->
+        <div class="stage-card">
+            <div class="stage-img"><img src="../images/A04.jpg" alt="阶段4" onerror="this.src='https://placehold.co/300x180?text=Image+Not+Found'"></div>
+            <div class="stage-info"><div class="stage-title">④ 1990s · 机器学习赋能临床决策</div><div class="stage-desc">决策树、神经网络初步应用，支持向量机用于疾病分类，电子健康记录开始数字化。</div></div>
+        </div>
+        <!-- 阶段5 -->
+        <div class="stage-card">
+            <div class="stage-img"><img src="../images/A05.jpg" alt="阶段5" onerror="this.src='https://placehold.co/300x180?text=Image+Not+Found'"></div>
+            <div class="stage-info"><div class="stage-title">⑤ 2000s · 影像组学与数据爆发</div><div class="stage-desc">医学影像数字化全面普及，计算机辅助检测(CAD)蓬勃发展，AI开始在肿瘤检测中显露价值。</div></div>
+        </div>
+        <!-- 阶段6 -->
+        <div class="stage-card">
+            <div class="stage-img"><img src="../images/A06.jpg" alt="阶段6" onerror="this.src='https://placehold.co/300x180?text=Image+Not+Found'"></div>
+            <div class="stage-info"><div class="stage-title">⑥ 2010-2015 · 深度学习革命</div><div class="stage-desc">卷积神经网络在ImageNet获胜，迅速迁移到医学影像分析，皮肤癌、眼底病检测超越初级医师水平。</div></div>
+        </div>
+        <!-- 阶段7 -->
+        <div class="stage-card">
+            <div class="stage-img"><img src="../images/A07.jpg" alt="阶段7" onerror="this.src='https://placehold.co/300x180?text=Image+Not+Found'"></div>
+            <div class="stage-info"><div class="stage-title">⑦ 2016-2018 · 医疗AI商业化落地</div><div class="stage-desc">AI辅助诊断产品获FDA批准，腾讯觅影、谷歌眼部诊断等进入临床，放射科AI助手普及。</div></div>
+        </div>
+        <!-- 阶段8 -->
+        <div class="stage-card">
+            <div class="stage-img"><img src="../images/A08.jpg" alt="阶段8" onerror="this.src='https://placehold.co/300x180?text=Image+Not+Found'"></div>
+            <div class="stage-info"><div class="stage-title">⑧ 2019-2020 · 自然语言处理突破</div><div class="stage-desc">BERT/GPT模型用于电子病历挖掘、医学文献理解，公共卫生监测与新冠预测大放异彩。</div></div>
+        </div>
+        <!-- 阶段9 -->
+        <div class="stage-card">
+            <div class="stage-img"><img src="../images/A09.jpg" alt="阶段9" onerror="this.src='https://placehold.co/300x180?text=Image+Not+Found'"></div>
+            <div class="stage-info"><div class="stage-title">⑨ 2021-2023 · 多模态与大模型时代</div><div class="stage-desc">Med-PaLM等医疗大模型涌现，结合影像、文本、基因组学，辅助临床诊疗决策。</div></div>
+        </div>
+        <!-- 阶段10 -->
+        <div class="stage-card">
+            <div class="stage-img"><img src="../images/A10.jpg" alt="阶段10" onerror="this.src='https://placehold.co/300x180?text=Image+Not+Found'"></div>
+            <div class="stage-info"><div class="stage-title">⑩ 2024-未来 · 智慧医疗新纪元</div><div class="stage-desc">生成式AI赋能个性化治疗，手术机器人自适应规划，联邦学习推动隐私计算，AI让医疗更普惠。</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- 浮动窗口 (可折叠/展开，可拖动，滚动时位置固定) -->
+<div id="floatWindow" class="floating-window">
+    <div class="window-header" id="dragHandle">
+        <span class="window-title">✨ 医学AI动态图</span>
+        <button class="toggle-btn" id="toggleWindowBtn">−</button>
+    </div>
+    <div class="window-content">
+        <img src="../images/B01.gif" alt="AI 动态示意" onerror="this.src='https://placehold.co/200x150?text=B01.gif+Not+Found'">
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 1. 音频播放器逻辑 (自动播放 ../audios/01.mp3) 带进度条/时长/静音 ----------
+        const audio = new Audio();
+        audio.src = '../audios/01.mp3';
+        audio.loop = false;    // 不循环，单次播放但可重复
+        audio.volume = 0.3;    // 默认音量30%
+        
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const currentTimeSpan = document.getElementById('currentTime');
+        const durationSpan = document.getElementById('durationTime');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const muteToggle = document.getElementById('muteToggle');
+        
+        let isPlaying = false;
+        let isMuted = false;
+        let wasPlayingBeforeDrag = false;
+        
+        // 格式化时间 mm:ss
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' + secs : secs}`;
+        }
+        
+        // 更新时间显示
+        function updateTimeDisplay() {
+            if (audio.duration && !isNaN(audio.duration)) {
+                durationSpan.innerText = formatTime(audio.duration);
+            } else {
+                durationSpan.innerText = '0:00';
+            }
+            currentTimeSpan.innerText = formatTime(audio.currentTime);
+            const percent = (audio.currentTime / audio.duration) * 100 || 0;
+            progressFill.style.width = `${percent}%`;
+        }
+        
+        // 音频加载完成时获取总时长
+        audio.addEventListener('loadedmetadata', () => {
+            durationSpan.innerText = formatTime(audio.duration);
+            updateTimeDisplay();
+        });
+        
+        // 播放更新进度
+        audio.addEventListener('timeupdate', updateTimeDisplay);
+        audio.addEventListener('ended', () => {
+            isPlaying = false;
+            playPauseBtn.innerText = '▶️';
+        });
+        
+        // 播放/暂停
+        function togglePlayPause() {
+            if (isPlaying) {
+                audio.pause();
+                playPauseBtn.innerText = '▶️';
+            } else {
+                audio.play().catch(err => {
+                    console.warn('自动播放被阻止，请点击页面任意位置激活', err);
+                    // 优雅提示: 用户第一次点击播放按钮即可，无需过度报错
+                });
+                playPauseBtn.innerText = '⏸️';
+            }
+            isPlaying = !isPlaying;
+        }
+        
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        
+        // 进度条跳转
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            if (audio.duration) {
+                audio.currentTime = percent * audio.duration;
+                updateTimeDisplay();
+            }
+        });
+        
+        // 音量控制
+        volumeSlider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            audio.volume = val;
+            if (val === 0) {
+                muteToggle.innerText = '🔇';
+                isMuted = true;
+            } else {
+                muteToggle.innerText = '🔊';
+                isMuted = false;
+            }
+        });
+        
+        // 静音切换
+        muteToggle.addEventListener('click', () => {
+            if (isMuted) {
+                audio.volume = volumeSlider.value;
+                muteToggle.innerText = '🔊';
+                isMuted = false;
+            } else {
+                audio.volume = 0;
+                muteToggle.innerText = '🔇';
+                isMuted = true;
+                volumeSlider.value = 0;
+            }
+        });
+        
+        // 同步音量滑块初始值
+        audio.volume = volumeSlider.value;
+        
+        // 自动播放策略: 由于浏览器策略限制，必须用户交互才能有声播放，但题目要求“自动播放”
+        // 最佳实践：页面加载时尝试自动播放，若失败则在用户首次点击页面任意区域时播放
+        const tryAutoPlay = () => {
+            audio.play().then(() => {
+                isPlaying = true;
+                playPauseBtn.innerText = '⏸️';
+            }).catch(() => {
+                console.log('自动播放被浏览器限制，等待用户交互');
+                // 添加全局一次性监听
+                const startAudio = () => {
+                    audio.play().then(() => {
+                        isPlaying = true;
+                        playPauseBtn.innerText = '⏸️';
+                    }).catch(e => console.warn(e));
+                    document.removeEventListener('click', startAudio);
+                    document.removeEventListener('touchstart', startAudio);
+                };
+                document.addEventListener('click', startAudio, { once: true });
+                document.addEventListener('touchstart', startAudio, { once: true });
+            });
+        };
+        setTimeout(tryAutoPlay, 300);
+        
+        // ---------- 2. 浮动窗口 (可拖动/折叠/滚动时位置固定) ----------
+        const floatWindow = document.getElementById('floatWindow');
+        const toggleBtn = document.getElementById('toggleWindowBtn');
+        const dragHandle = document.getElementById('dragHandle');
+        
+        let isDragging = false;
+        let offsetX = 0, offsetY = 0;
+        let windowLeft = 0, windowTop = 0;
+        
+        // 获取当前窗口位置 (基于fixed定位)
+        function getWindowPosition() {
+            const rect = floatWindow.getBoundingClientRect();
+            return { left: rect.left, top: rect.top };
+        }
+        
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            let newLeft = e.clientX - offsetX;
+            let newTop = e.clientY - offsetY;
+            // 边界限制 (避免完全超出屏幕)
+            const maxX = window.innerWidth - floatWindow.offsetWidth;
+            const maxY = window.innerHeight - floatWindow.offsetHeight;
+            newLeft = Math.min(Math.max(0, newLeft), maxX);
+            newTop = Math.min(Math.max(0, newTop), maxY);
+            floatWindow.style.left = `${newLeft}px`;
+            floatWindow.style.right = 'auto';
+            floatWindow.style.bottom = 'auto';
+            floatWindow.style.top = `${newTop}px`;
+        }
+        
+        function onMouseUp() {
+            isDragging = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            floatWindow.style.cursor = 'grab';
+        }
+        
+        dragHandle.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            const rect = floatWindow.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            isDragging = true;
+            // 确保定位方式为 fixed 且 left/top 值存在
+            const currentLeft = rect.left;
+            const currentTop = rect.top;
+            floatWindow.style.left = `${currentLeft}px`;
+            floatWindow.style.top = `${currentTop}px`;
+            floatWindow.style.right = 'auto';
+            floatWindow.style.bottom = 'auto';
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            floatWindow.style.cursor = 'grabbing';
+        });
+        
+        // 折叠/展开
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            floatWindow.classList.toggle('collapsed');
+            toggleBtn.innerText = floatWindow.classList.contains('collapsed') ? '+' : '−';
+            // 折叠后重新调整边界防止右侧超出
+            setTimeout(() => {
+                if (floatWindow.classList.contains('collapsed')) {
+                    const rect = floatWindow.getBoundingClientRect();
+                    if (rect.right > window.innerWidth) {
+                        floatWindow.style.left = `${window.innerWidth - rect.width - 10}px`;
+                    }
+                }
+            }, 10);
+        });
+        
+        // 窗口初始位置设定 (右下角)
+        function setInitialPosition() {
+            floatWindow.style.bottom = '30px';
+            floatWindow.style.right = '30px';
+            floatWindow.style.left = 'auto';
+            floatWindow.style.top = 'auto';
+        }
+        setInitialPosition();
+        
+        // 当滚动条滚动时，浮动窗口位置不变 (因为fixed定位自动实现)
+        // 额外确保重置拖动时边界计算。
+        window.addEventListener('resize', () => {
+            if (!isDragging && floatWindow.style.left !== 'auto') {
+                const rect = floatWindow.getBoundingClientRect();
+                const maxX = window.innerWidth - floatWindow.offsetWidth;
+                const maxY = window.innerHeight - floatWindow.offsetHeight;
+                let newLeft = rect.left;
+                let newTop = rect.top;
+                if (newLeft > maxX) newLeft = maxX;
+                if (newTop > maxY) newTop = maxY;
+                if (newLeft < 0) newLeft = 0;
+                if (newTop < 0) newTop = 0;
+                floatWindow.style.left = `${newLeft}px`;
+                floatWindow.style.top = `${newTop}px`;
+            } else if (floatWindow.style.left === 'auto') {
+                setInitialPosition();
+            }
+        });
+        
+        // 图片加载失败占位符友好提示
+        const imgs = document.querySelectorAll('.stage-img img');
+        imgs.forEach(img => {
+            img.addEventListener('error', () => {
+                if (!img.src.includes('placehold')) {
+                    img.src = 'https://placehold.co/300x180?text=Image+Missing';
+                }
+            });
+        });
+        const floatImg = document.querySelector('.window-content img');
+        if (floatImg) {
+            floatImg.addEventListener('error', () => {
+                floatImg.src = 'https://placehold.co/200x150?text=GIF+Missing';
+            });
+        }
+    })();
+</script>
+</body>
+</html>

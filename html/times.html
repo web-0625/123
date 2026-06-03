@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>时光机 | 医者·岁月长河</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* 避免拖动滑块时误选文字，不影响体验 */
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Georgia', 'Times New Roman', serif;
+            background: #fef7e8;
+            background-image: radial-gradient(circle at 10% 20%, rgba(235, 215, 185, 0.2) 2%, transparent 2.5%),
+                              radial-gradient(circle at 80% 70%, rgba(200, 170, 130, 0.15) 1.5%, transparent 2%);
+            background-size: 48px 48px, 32px 32px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        /* 主容器 — 怀旧相纸白 */
+        .time-machine {
+            max-width: 1100px;
+            width: 100%;
+            background: #fffef7;
+            border-radius: 48px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.02);
+            padding: 2rem 2rem 2rem 2rem;
+            transition: all 0.2s;
+            border: 1px solid #f0e4d0;
+        }
+
+        /* 标题区怀旧 */
+        .hero {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px dashed #e7d9c6;
+            padding-bottom: 1rem;
+        }
+        .hero h1 {
+            font-size: 2.4rem;
+            letter-spacing: 2px;
+            color: #7c5f3a;
+            font-weight: 500;
+            font-family: 'Georgia', serif;
+            text-shadow: 2px 2px 0 #f3e9da;
+        }
+        .hero p {
+            color: #b48c5c;
+            margin-top: 8px;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        /* 图片区 — 4:3 比例容器 + 动画 */
+        .photo-stage {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0 20px;
+        }
+        .photo-frame {
+            background: #f7f0e4;
+            padding: 18px 18px 14px 18px;
+            border-radius: 32px;
+            box-shadow: 0 12px 24px -8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.8);
+            border: 1px solid #e2d3be;
+        }
+        .image-wrapper {
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto;
+            position: relative;
+            background: #e9dfcf;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 0 0 2px rgba(255,245,225,0.6), 0 4px 12px rgba(0,0,0,0.05);
+        }
+        #ageImage {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+            aspect-ratio: 4 / 3;   /* 强制4:3比例，同时适应滑块缩放 */
+            transition: transform 0.2s ease, width 0.2s, height 0.2s;
+            border-radius: 16px;
+            background: #dad0bc;
+        }
+        /* 动画 class 控制切换特效 */
+        .animate-zoom {
+            animation: zoomEffect 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+        }
+        .animate-fade {
+            animation: fadeTurn 0.35s ease-out forwards;
+        }
+        .animate-slide {
+            animation: slideTurn 0.4s ease forwards;
+        }
+        .animate-flip {
+            animation: flipTurn 0.5s ease;
+        }
+
+        @keyframes zoomEffect {
+            0% { transform: scale(0.92); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes fadeTurn {
+            0% { opacity: 0.2; }
+            100% { opacity: 1; }
+        }
+        @keyframes slideTurn {
+            0% { transform: translateX(18px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes flipTurn {
+            0% { transform: rotateY(90deg); opacity: 0.2; }
+            100% { transform: rotateY(0deg); opacity: 1; }
+        }
+
+        /* 祝福语卡片 (复古便签) */
+        .bless-box {
+            background: #fff9ef;
+            margin: 28px 20px 20px 20px;
+            padding: 18px 22px;
+            border-radius: 48px 24px 48px 24px;
+            text-align: center;
+            font-size: 1.15rem;
+            font-family: 'Segoe UI', 'Georgia', serif;
+            color: #6a4e2e;
+            box-shadow: inset 0 0 0 1px #fff6e8, 0 6px 14px rgba(90, 60, 30, 0.08);
+            border-left: 6px solid #e6c394;
+            background: linear-gradient(145deg, #fffcf5, #fff7ed);
+            line-height: 1.45;
+            transition: all 0.2s;
+        }
+
+        /* 滑块控制区 怀旧样式 */
+        .control-panel {
+            background: #fef7ec;
+            border-radius: 48px;
+            padding: 18px 24px;
+            margin: 15px 0 8px;
+            border: 1px solid #eedfcb;
+        }
+        .slider-group {
+            margin-bottom: 24px;
+        }
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 500;
+            color: #8b6946;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            background: #e1cfb5;
+            border-radius: 10px;
+            outline: none;
+        }
+        input[type="range"]:focus {
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #b87c4f;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border: 2px solid #faeac9;
+        }
+        .age-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #b4682d;
+            background: #fff2e2;
+            display: inline-block;
+            padding: 2px 14px;
+            border-radius: 40px;
+        }
+        .size-value {
+            font-size: 0.9rem;
+            color: #8b6946;
+        }
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            justify-content: center;
+        }
+        .btn-nostalgia {
+            background: #f3eadc;
+            border: 1px solid #ddceb8;
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-weight: 500;
+            color: #7a5838;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn-nostalgia:hover {
+            background: #e7dac8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .active-animation {
+            background: #dac09e;
+            color: white;
+            border-color: #b48b54;
+        }
+        .music-switch {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 14px;
+            font-size: 0.8rem;
+            color: #b88f60;
+        }
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #cdb691;
+            margin-top: 20px;
+        }
+        @media (max-width: 640px) {
+            .time-machine {
+                padding: 1.2rem;
+            }
+            .bless-box {
+                font-size: 0.9rem;
+                margin: 12px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="time-machine">
+    <div class="hero">
+        <h1>📻 时光机 · 医者之路</h1>
+        <p>从青涩学医到仁心圣手，岁月铭刻每一份治愈的温度</p>
+    </div>
+
+    <!-- 图片展示区 4:3 -->
+    <div class="photo-stage">
+        <div class="photo-frame">
+            <div class="image-wrapper" id="imageWrapper">
+                <img id="ageImage" src="../images/age10.png" alt="时光剪影" style="width:100%; height:auto; aspect-ratio:4/3;">
+            </div>
+        </div>
+    </div>
+
+    <!-- 祝福箴言 -->
+    <div class="bless-box" id="blessingText">
+         🌱 十岁立志 · 医学梦想萌芽，愿你心怀仁爱，点亮初心。
+    </div>
+
+    <!-- 控制区域 -->
+    <div class="control-panel">
+        <div class="slider-group">
+            <label>🎞️ 岁月刻度 · 年龄 <span class="age-value" id="ageDisplay">10</span> 岁</label>
+            <input type="range" id="ageSlider" min="10" max="80" step="10" value="10">
+            <div style="display: flex; justify-content: space-between; padding: 0 6px; margin-top: 6px;">
+                <span>🌱 10岁</span><span>🎓 20岁</span><span>📚 30岁</span><span>🩺 40岁</span><span>🏆 50岁</span><span>🍃 60岁</span><span>📖 70岁</span><span>✨ 80岁</span>
+            </div>
+        </div>
+
+        <div class="slider-group">
+            <label>🔍 回忆缩放 · 图片大小调节 <span class="size-value" id="sizeValue">100%</span></label>
+            <input type="range" id="sizeSlider" min="50" max="150" value="100" step="2">
+        </div>
+
+        <div class="button-group">
+            <button id="prevBtn" class="btn-nostalgia">◀ 上一页</button>
+            <button id="autoPlayBtn" class="btn-nostalgia">⏸ 暂停轮播</button>
+            <button id="nextBtn" class="btn-nostalgia">下一页 ▶</button>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap;">
+            <span style="font-size: 0.75rem; color: #b2916e;">✨ 切换动画:</span>
+            <button id="animZoom" class="btn-nostalgia" data-anim="zoom">缩放</button>
+            <button id="animFade" class="btn-nostalgia" data-anim="fade">淡入</button>
+            <button id="animSlide" class="btn-nostalgia" data-anim="slide">滑动</button>
+            <button id="animFlip" class="btn-nostalgia" data-anim="flip">翻转</button>
+        </div>
+        <div class="music-switch">
+            <span>🎵 旧时光旋律</span>
+            <label style="display: flex; gap: 6px;"><input type="checkbox" id="musicToggle" checked> 背景音乐</label>
+        </div>
+    </div>
+    <footer>✦ 一袭白衣，一生韶华 ✦ 致敬每一位医者</footer>
+</div>
+
+<audio id="bgAudio" src="../audios/bg04.mp3" loop preload="auto"></audio>
+
+<script>
+    (function() {
+        // ---------- 年龄祝福数据 ----------
+        const blessings = {
+            10: "🌱 十岁立志，初识医学奥秘。愿你永远怀揣好奇心，播下仁爱的种子。",
+            20: "📖 二十青春，踏入学海征程。解剖室的灯光映照执着，博学而后笃行，未来可期。",
+            30: "🩻 三十而立，初披白衣。从病历中磨砺，在病房中成长，每一步都算数。",
+            40: "🏥 四十不惑，术业渐精。救治无数日夜，仁心照亮人间，你是病患的依靠。",
+            50: "🌟 五十知天命，经验沉淀。妙手回春，带教后辈，医学星火代代传。",
+            60: "🍂 六十耳顺，桃李芬芳。银发映衬慈祥，智慧抚慰伤痛，岁月不败仁心。",
+            70: "📜 七十古稀，半生耕耘。依旧关注医学前沿，一言一行皆成榜样。",
+            80: "🕊️ 八十荣光，大医精诚。回首漫漫医路，无数生命因你而延续，致敬岁月礼赞。"
+        };
+        // 补充全部间隔 10~80 (保证每一个step都有)
+        const allAges = [10,20,30,40,50,60,70,80];
+        
+        // 图片映射：../images/age10.png ~ age80.png
+        function getImagePath(age) {
+            return `../images/age${age}.png`;
+        }
+        
+        // DOM 元素
+        const ageImage = document.getElementById('ageImage');
+        const ageSlider = document.getElementById('ageSlider');
+        const ageDisplay = document.getElementById('ageDisplay');
+        const blessingEl = document.getElementById('blessingText');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const sizeValueSpan = document.getElementById('sizeValue');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const autoPlayBtn = document.getElementById('autoPlayBtn');
+        const bgAudio = document.getElementById('bgAudio');
+        const musicToggle = document.getElementById('musicToggle');
+        
+        // 动画相关按钮
+        const animZoom = document.getElementById('animZoom');
+        const animFade = document.getElementById('animFade');
+        const animSlide = document.getElementById('animSlide');
+        const animFlip = document.getElementById('animFlip');
+        
+        // 当前选中的年龄 (数值)
+        let currentAge = 10;
+        // 当前动画类型 (默认缩放)
+        let currentAnimation = 'zoom';
+        // 自动轮播定时器
+        let autoInterval = null;
+        let isAutoPlaying = true;   // 初始自动轮播开启
+        const AUTO_DELAY = 4000;    // 4秒切换一张
+        
+        // 辅助: 获取年龄对应的祝福
+        function getBlessing(age) {
+            return blessings[age] || `✨ ${age}岁，医学之路铭刻信念，岁岁安康，初心不负。`;
+        }
+        
+        // 切换图片的核心方法，附带切换动画效果 (应用动画class)
+        function changeAge(age, applyAnimation = true) {
+            if (age < 10) age = 10;
+            if (age > 80) age = 80;
+            // 确保步进为10的倍数
+            const validAges = [10,20,30,40,50,60,70,80];
+            let closest = validAges.reduce((prev, curr) => {
+                return (Math.abs(curr - age) < Math.abs(prev - age) ? curr : prev);
+            });
+            age = closest;
+            if (age !== currentAge) {
+                currentAge = age;
+                // 更新滑块显示
+                ageSlider.value = currentAge;
+                ageDisplay.innerText = currentAge;
+                // 更新祝福语
+                blessingEl.innerHTML = getBlessing(currentAge);
+            } else if (age === currentAge && !applyAnimation) {
+                // 同年龄时仍然刷新图片但无额外动画可选（但保持图片更新）
+            }
+            
+            const newSrc = getImagePath(currentAge);
+            // 应用切换动画效果（避免重复动画时冲突）
+            if (applyAnimation) {
+                // 移除之前的动画类，重新触发
+                ageImage.classList.remove('animate-zoom', 'animate-fade', 'animate-slide', 'animate-flip');
+                // 强制重绘
+                void ageImage.offsetWidth;
+                // 根据当前选择的动画添加class
+                if (currentAnimation === 'zoom') ageImage.classList.add('animate-zoom');
+                else if (currentAnimation === 'fade') ageImage.classList.add('animate-fade');
+                else if (currentAnimation === 'slide') ageImage.classList.add('animate-slide');
+                else if (currentAnimation === 'flip') ageImage.classList.add('animate-flip');
+            }
+            
+            // 更新图片src (加载新图像)
+            ageImage.src = newSrc;
+            // 图片加载错误时的优雅fallback
+            ageImage.onerror = () => {
+                console.warn(`图片加载失败: ${newSrc}`);
+                ageImage.src = "../images/age10.png";
+                blessingEl.innerHTML = "🕰️ 时光映像缺失，但祝福永存。请检查 images/ 中的 ageXX.png 文件。";
+            };
+            
+            // 保证在动画结束后移除类以避免残留（但保留样式不影响下次）
+            if (applyAnimation) {
+                setTimeout(() => {
+                    if (ageImage) {
+                        ageImage.classList.remove('animate-zoom', 'animate-fade', 'animate-slide', 'animate-flip');
+                    }
+                }, 500);
+            }
+        }
+        
+        // 图片大小调节函数
+        function resizeImage(percent) {
+            const wrapper = document.querySelector('.image-wrapper');
+            if (!wrapper) return;
+            const scale = percent / 100;
+            // 保持比例但限制最大100%容器宽度
+            ageImage.style.transform = `scale(${scale})`;
+            ageImage.style.transition = 'transform 0.2s ease';
+            sizeValueSpan.innerText = `${percent}%`;
+        }
+        
+        // 轮播控制
+        function startAutoPlay() {
+            if (autoInterval) clearInterval(autoInterval);
+            autoInterval = setInterval(() => {
+                // 获取当前年龄索引
+                const ages = [10,20,30,40,50,60,70,80];
+                let idx = ages.indexOf(currentAge);
+                let nextIdx = (idx + 1) % ages.length;
+                let nextAge = ages[nextIdx];
+                changeAge(nextAge, true);
+            }, AUTO_DELAY);
+            isAutoPlaying = true;
+            autoPlayBtn.textContent = "⏸ 暂停轮播";
+        }
+        
+        function stopAutoPlay() {
+            if (autoInterval) {
+                clearInterval(autoInterval);
+                autoInterval = null;
+            }
+            isAutoPlaying = false;
+            autoPlayBtn.textContent = "▶ 开始轮播";
+        }
+        
+        function toggleAutoPlay() {
+            if (isAutoPlaying) {
+                stopAutoPlay();
+            } else {
+                startAutoPlay();
+            }
+        }
+        
+        // 上一张/下一张逻辑，根据年龄步长10移动
+        function prevAge() {
+            const ages = [10,20,30,40,50,60,70,80];
+            let idx = ages.indexOf(currentAge);
+            if (idx === -1) idx = 0;
+            let newIdx = (idx - 1 + ages.length) % ages.length;
+            changeAge(ages[newIdx], true);
+            // 手动操作后，如果自动轮播是开启状态，仍保留自动（但用户习惯：不干扰自动逻辑）
+            // 但为了方便，不清除auto，保留自动继续，但为了自然体验，仍继续轮播，无需额外逻辑。
+        }
+        
+        function nextAge() {
+            const ages = [10,20,30,40,50,60,70,80];
+            let idx = ages.indexOf(currentAge);
+            if (idx === -1) idx = 0;
+            let newIdx = (idx + 1) % ages.length;
+            changeAge(ages[newIdx], true);
+        }
+        
+        // 滑块事件监听
+        function bindEvents() {
+            ageSlider.addEventListener('input', (e) => {
+                let val = parseInt(e.target.value, 10);
+                // 保证步进10映射
+                const roundVal = Math.round(val / 10) * 10;
+                if (roundVal !== currentAge) {
+                    changeAge(roundVal, true);
+                    // 手动滑动时如果自动轮播开着，暂时不停止自动(符合大多数体验，但可以保持)
+                    // 但很多用户期望手动后不要破坏自动节奏，不停止自动，只更新。
+                } else {
+                    // 值相同也强制刷新祝福语确保
+                    blessingEl.innerHTML = getBlessing(currentAge);
+                }
+            });
+            
+            sizeSlider.addEventListener('input', (e) => {
+                const percent = parseInt(e.target.value, 10);
+                resizeImage(percent);
+            });
+            
+            prevBtn.addEventListener('click', () => {
+                prevAge();
+            });
+            nextBtn.addEventListener('click', () => {
+                nextAge();
+            });
+            autoPlayBtn.addEventListener('click', toggleAutoPlay);
+            
+            // 动画切换
+            animZoom.addEventListener('click', () => {
+                currentAnimation = 'zoom';
+                setActiveAnimationBtn(animZoom);
+            });
+            animFade.addEventListener('click', () => {
+                currentAnimation = 'fade';
+                setActiveAnimationBtn(animFade);
+            });
+            animSlide.addEventListener('click', () => {
+                currentAnimation = 'slide';
+                setActiveAnimationBtn(animSlide);
+            });
+            animFlip.addEventListener('click', () => {
+                currentAnimation = 'flip';
+                setActiveAnimationBtn(animFlip);
+            });
+        }
+        
+        function setActiveAnimationBtn(activeBtn) {
+            const btns = [animZoom, animFade, animSlide, animFlip];
+            btns.forEach(btn => {
+                btn.classList.remove('active-animation');
+                btn.style.background = "#f3eadc";
+            });
+            activeBtn.classList.add('active-animation');
+            activeBtn.style.background = "#dac09e";
+        }
+        
+        // 背景音乐自动播放策略 (优雅兼容)
+        function initMusic() {
+            if (!bgAudio) return;
+            bgAudio.volume = 0.45;
+            bgAudio.loop = true;
+            const tryAutoPlay = () => {
+                bgAudio.play().catch(err => {
+                    console.log("自动播放策略需用户交互", err);
+                    // 监听一次用户点击，再尝试播放
+                    const resumeHandler = () => {
+                        if (musicToggle.checked && bgAudio.paused) {
+                            bgAudio.play().catch(e => console.log);
+                        }
+                        document.removeEventListener('click', resumeHandler);
+                        document.removeEventListener('touchstart', resumeHandler);
+                    };
+                    document.addEventListener('click', resumeHandler);
+                    document.addEventListener('touchstart', resumeHandler);
+                });
+            };
+            tryAutoPlay();
+            musicToggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    bgAudio.play().catch(() => {});
+                } else {
+                    bgAudio.pause();
+                }
+            });
+        }
+        
+        // 初始化默认: 10岁，大小100%，动画默认zoom
+        function init() {
+            // 设置初始年龄10
+            currentAge = 10;
+            ageSlider.value = 10;
+            ageDisplay.innerText = 10;
+            const initialImgPath = getImagePath(10);
+            ageImage.src = initialImgPath;
+            blessingEl.innerHTML = getBlessing(10);
+            resizeImage(100);
+            sizeSlider.value = 100;
+            currentAnimation = 'zoom';
+            setActiveAnimationBtn(animZoom);
+            bindEvents();
+            startAutoPlay();    // 自动轮播开始
+            initMusic();
+            // 确保图片比例4:3在动态缩放时不变形 (css aspect-ratio)
+            ageImage.style.aspectRatio = '4/3';
+            ageImage.style.objectFit = 'cover';
+            // 加载失败备用
+            ageImage.onerror = () => {
+                ageImage.src = "../images/age10.png";
+            };
+            // 优雅滚动及确保祝福完整
+        }
+        
+        // 页面退出时清除定时器
+        window.addEventListener('beforeunload', () => {
+            if (autoInterval) clearInterval(autoInterval);
+            if (bgAudio) bgAudio.pause();
+        });
+        
+        init();
+    })();
+</script>
+</body>
+</html>

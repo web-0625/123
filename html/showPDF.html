@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>医学文献 | PDF阅览器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f5f7fb;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 极简头部 — 仅作氛围，不干扰阅读 */
+        .pdf-header {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 0.9rem 2rem;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .title-section {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .title-section h1 {
+            font-size: 1.25rem;
+            font-weight: 500;
+            background: linear-gradient(135deg, #1c4e6e, #2c6285);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.2px;
+            border-left: 3px solid #2c7cb6;
+            padding-left: 12px;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            background: #eef2f8;
+            padding: 4px 10px;
+            border-radius: 30px;
+            color: #4a6f8f;
+            font-weight: 450;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .ctrl-btn {
+            background: transparent;
+            border: none;
+            font-size: 0.85rem;
+            color: #4a627a;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 30px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            background: rgba(240, 245, 250, 0.7);
+        }
+
+        .ctrl-btn:hover {
+            background: #e2e8f0;
+            color: #1f6392;
+        }
+
+        /* pdf 全屏容器: 撑满剩余空间 */
+        .pdf-container {
+            flex: 1;
+            width: 100%;
+            background: #eef2f5;
+            position: relative;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            background: #fff;
+        }
+
+        /* 优雅加载提示（极简） */
+        .loading-tip {
+            position: absolute;
+            bottom: 20px;
+            right: 24px;
+            font-size: 0.7rem;
+            color: #8ba3bc;
+            background: rgba(255,255,240,0.7);
+            backdrop-filter: blur(4px);
+            padding: 4px 12px;
+            border-radius: 40px;
+            pointer-events: none;
+            z-index: 5;
+            font-weight: 400;
+        }
+
+        /* 响应式: 小屏时头部紧凑 */
+        @media (max-width: 560px) {
+            .pdf-header {
+                padding: 0.7rem 1rem;
+            }
+            .title-section h1 {
+                font-size: 1rem;
+            }
+            .ctrl-btn {
+                padding: 4px 8px;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* 简约风格占位 */
+        .footer-note {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="pdf-header">
+        <div class="title-section">
+            <h1>📄 医学人工智能 · 课程文献</h1>
+            <span class="badge">PDF 全文阅览</span>
+        </div>
+        <div class="controls">
+            <button class="ctrl-btn" id="fullscreenBtn" aria-label="全屏模式">
+                <span>⛶</span> 全屏
+            </button>
+            <button class="ctrl-btn" id="refreshBtn" aria-label="刷新">
+                <span>🔄</span> 刷新
+            </button>
+        </div>
+    </div>
+
+    <div class="pdf-container">
+        <!-- 直接嵌入 PDF 文件，满屏自适应 -->
+        <iframe id="pdfFrame" src="../pdf/01.pdf" title="PDF文档内容"></iframe>
+        <div class="loading-tip">
+            📑 文档加载中 | 支持缩放与滚动
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const pdfFrame = document.getElementById('pdfFrame');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const refreshBtn = document.getElementById('refreshBtn');
+
+            // 检测文件加载失败，提供基本提示（不干扰体验）
+            let loadErrorFlag = false;
+            
+            // 设置iframe加载错误处理（简约风格）
+            function handlePdfLoadError() {
+                if (!loadErrorFlag) {
+                    loadErrorFlag = true;
+                    // 创建一个轻柔的提示浮层，但不会破坏简约感
+                    const errorDiv = document.createElement('div');
+                    errorDiv.innerText = '⚠️ PDF 文件加载失败，请确认 ../pdf/01.pdf 文件存在。';
+                    errorDiv.style.position = 'fixed';
+                    errorDiv.style.bottom = '60px';
+                    errorDiv.style.left = '50%';
+                    errorDiv.style.transform = 'translateX(-50%)';
+                    errorDiv.style.backgroundColor = '#fff6e5';
+                    errorDiv.style.color = '#bc6f2c';
+                    errorDiv.style.padding = '6px 18px';
+                    errorDiv.style.borderRadius = '40px';
+                    errorDiv.style.fontSize = '0.8rem';
+                    errorDiv.style.zIndex = '100';
+                    errorDiv.style.border = '1px solid #f0dbb4';
+                    errorDiv.style.fontFamily = 'system-ui';
+                    errorDiv.style.backdropFilter = 'blur(8px)';
+                    errorDiv.style.pointerEvents = 'none';
+                    document.body.appendChild(errorDiv);
+                    setTimeout(() => {
+                        errorDiv.style.opacity = '0';
+                        setTimeout(() => errorDiv.remove(), 800);
+                    }, 3800);
+                }
+            }
+
+            // 监听 iframe 加载超时或错误
+            pdfFrame.onerror = function() {
+                handlePdfLoadError();
+            };
+            
+            // 有些浏览器可能通过onload检测加载失败场景有限，但增加一个备用监控
+            setTimeout(() => {
+                try {
+                    // 尝试检测是否可访问（仅做占位优雅处理）
+                    const frameDoc = pdfFrame.contentDocument || pdfFrame.contentWindow?.document;
+                    if (!frameDoc || frameDoc.readyState === 'complete' && frameDoc.body && frameDoc.body.innerText.includes('无法')) {
+                        // 部分浏览器显示错误文本
+                        handlePdfLoadError();
+                    }
+                } catch(e) {
+                    // 跨域限制忽略
+                }
+            }, 1500);
+            
+            // 刷新PDF (保留当前src强制重载)
+            function refreshPdf() {
+                // 简约刷新效果 - 加短暂透明度过渡
+                pdfFrame.style.opacity = '0.6';
+                const originalSrc = pdfFrame.src;
+                pdfFrame.src = '';
+                setTimeout(() => {
+                    pdfFrame.src = originalSrc;
+                    pdfFrame.onload = () => {
+                        pdfFrame.style.opacity = '1';
+                    };
+                    setTimeout(() => {
+                        if (pdfFrame.style.opacity === '0.6') pdfFrame.style.opacity = '1';
+                    }, 500);
+                }, 40);
+            }
+            
+            // 全屏模式 (让整个PDF容器占据全屏，简约风格)
+            function goFullscreen() {
+                const container = document.querySelector('.pdf-container');
+                if (!container) return;
+                // 使用全屏API
+                if (container.requestFullscreen) {
+                    container.requestFullscreen().catch(err => {
+                        console.warn(`全屏请求失败: ${err.message}`);
+                        // 可选备用提示
+                        alert('全屏模式需要用户交互，请点击页面后再次尝试');
+                    });
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                } else if (container.msRequestFullscreen) {
+                    container.msRequestFullscreen();
+                } else {
+                    // 备用提醒
+                    alert('当前浏览器不支持全屏功能，请使用现代浏览器');
+                }
+            }
+            
+            // 绑定事件
+            refreshBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                refreshPdf();
+            });
+            
+            fullscreenBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                goFullscreen();
+            });
+            
+            // 当iframe加载完成后移除loading指示的干扰
+            pdfFrame.onload = () => {
+                pdfFrame.style.opacity = '1';
+                // 延迟移除可能残留的“加载”文字视觉 (loading-tip 只是小提示，保留柔和无妨)
+                const tip = document.querySelector('.loading-tip');
+                if (tip) {
+                    tip.style.opacity = '0.6';
+                    setTimeout(() => {
+                        if(tip) tip.style.opacity = '0.4';
+                    }, 800);
+                }
+            };
+            
+            // 设置初始透明度完全显示
+            pdfFrame.style.opacity = '1';
+            // 确保pdf容器背景和iframe完美融合
+            const style = document.createElement('style');
+            style.textContent = `
+                .pdf-container iframe {
+                    transition: opacity 0.2s ease;
+                }
+                /* 极简滚动条适配 */
+                ::-webkit-scrollbar {
+                    width: 6px;
+                    height: 6px;
+                }
+                ::-webkit-scrollbar-track {
+                    background: #f0f2f5;
+                }
+                ::-webkit-scrollbar-thumb {
+                    background: #cbdae9;
+                    border-radius: 8px;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // 可选监听全屏变化，调整头部显示效果（全屏时隐藏头部更沉浸，但简约方案保持头部简洁也可以）
+            document.addEventListener('fullscreenchange', () => {
+                if (document.fullscreenElement) {
+                    // 全屏时让头部更简洁：半透明，增加沉浸感
+                    const header = document.querySelector('.pdf-header');
+                    if (header) {
+                        header.style.opacity = '0.85';
+                        header.style.transition = 'opacity 0.2s';
+                    }
+                } else {
+                    const header = document.querySelector('.pdf-header');
+                    if (header) {
+                        header.style.opacity = '1';
+                    }
+                }
+            });
+            
+            // 如果因为路径导致无法加载，给出一次优雅的控制台提示，但页面依然保持干净简洁
+            console.log('PDF 阅览器已启动 | 文件路径: ../pdf/01.pdf');
+            
+            // 简单且优雅：如果iframe 无法显示PDF（比如浏览器不支持内联PDF），则不过度干预，保持原生查看器
+            // 设定一个延时，检测是否有内容丢失显示空白的情况 (再柔和提示)
+            setTimeout(() => {
+                try {
+                    const iframeDoc = pdfFrame.contentDocument;
+                    if (iframeDoc && iframeDoc.body && iframeDoc.body.innerText.trim() === "" && iframeDoc.body.children.length === 0) {
+                        // 极少数情况空白, 但浏览器一般会嵌入PDF插件，不额外骚扰
+                    }
+                } catch(e) {}
+            }, 1200);
+        })();
+    </script>
+</body>
+</html>
